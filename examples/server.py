@@ -32,7 +32,8 @@ import alpinocorpus
 urls = (
       '/', 'Index',
       '/([^/]*)/entries/?', 'Entries',
-      '/(.*)/entry/(.*)', 'Entry'
+      '/(.*)/entry/(.*)', 'Entry',
+      '/(.*)/validate', 'QueryValidation'
 )
 
 corpora = { 
@@ -99,6 +100,30 @@ class Entry:
       return web.notfound()
 
     return data
+
+class QueryValidation:
+  def GET(self, name):
+    web.header('Content-Type', 'text/plain')
+
+    if not corpora.has_key(name):
+      return web.notfound()
+
+    params = web.input()
+    try:
+      c = alpinocorpus.CorpusReader(corpora[name])
+
+      # Was there a request to mark entries?
+      if params.has_key('query'):
+        query = params.get('query')
+        if c.validQuery(query):
+          return '1'
+        else:
+          return '0'
+      else:
+        return web.notfound()
+
+    except RuntimeError:
+      return web.notfound()    
 
 if __name__ == "__main__":
   app.run()
