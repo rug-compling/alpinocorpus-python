@@ -2,7 +2,8 @@ from distutils.core import setup, Extension
 
 alpinocorpus = Extension('alpinocorpus',
 	libraries = ['alpino_corpus'],
-    sources = ['src/alpinocorpus.cpp'])
+    sources = ['src/alpinocorpus.cpp', 'src/CorpusReader.cpp',
+      'src/Entry.cpp', 'src/EntryIterator.cpp', 'src/MarkerQuery.cpp'])
 
 setup (name = 'alpinocorpus',
        version = '1.0.0',
