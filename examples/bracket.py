@@ -28,7 +28,7 @@ def matchAndPrint(stylesheet, reader, query):
 
   markerQueries = [alpinocorpus.MarkerQuery(query, "active", "1")]
   for entry in reader.query(query):
-    print trans.transform(reader.readMarkQueries(entry, markerQueries))
+    print trans.transform(reader.readMarkQueries(entry.name(), markerQueries))
 
   trans.close()
 
