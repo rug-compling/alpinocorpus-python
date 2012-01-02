@@ -4,6 +4,7 @@
 #include <Python.h>
 
 #include <AlpinoCorpus/CorpusReader.hh>
+#include <AlpinoCorpus/CorpusReaderFactory.hh>
 
 #include "alpinocorpus.h"
 #include "CorpusReader.hh"
@@ -72,7 +73,7 @@ PyObject *CorpusReader_new(PyTypeObject *type, PyObject *args,
   self = (CorpusReader *) type->tp_alloc(type, 0);
   try {
     if (self != NULL)
-      self->reader = alpinocorpus::CorpusReader::open(path);
+      self->reader = alpinocorpus::CorpusReaderFactory::open(path);
   } catch (std::runtime_error &e) {
     raise_exception(e.what());
     return NULL;
@@ -126,7 +127,7 @@ PyObject *CorpusReader_readMarkQueries(CorpusReader *self, PyObject *args)
 
   std::string data;
   try {
-    data = self->reader->readMarkQueries(entry, markerQueries);
+    data = self->reader->read(entry, markerQueries);
   } catch (std::runtime_error &e) {
     raise_exception(e.what());
     return NULL;
