@@ -1,6 +1,11 @@
+#include <AlpinoCorpus/error.hh>
+
+#include "alpinocorpus.h"
 #include "CorpusReader.hh"
 #include "Entry.hh"
 #include "EntryIterator.hh"
+
+namespace ac = alpinocorpus;
 
 static PyMethodDef EntryIterator_methods[] = {
   {NULL} // Sentinel
@@ -72,9 +77,35 @@ PyObject *EntryIterator_iternext(PyObject *self)
 {
   EntryIterator *entryIterator = reinterpret_cast<EntryIterator *>(self);
 
-  if (*entryIterator->iter != entryIterator->reader->reader->end()) {
+  bool notAtEnd;
+  Py_BEGIN_ALLOW_THREADS
+  try {
+    notAtEnd = *entryIterator->iter != entryIterator->reader->reader->end();
+  } catch (std::runtime_error &e) {
+    Py_BLOCK_THREADS
+    raise_exception(e.what());
+    return NULL;
+  }
+  Py_END_ALLOW_THREADS
+
+  if (notAtEnd) {
     PyObject *entry = Entry_new(entryIterator);
-    ++(*entryIterator->iter);
+
+    Py_BEGIN_ALLOW_THREADS
+    try {
+      ++(*entryIterator->iter);
+    } catch (ac::IterationInterrupted &e) {
+      Py_BLOCK_THREADS
+      // XXX - throw a specific exception here
+      PyErr_SetNone(PyExc_StopIteration);
+      return NULL;
+    } catch (std::runtime_error &e) {
+      Py_BLOCK_THREADS
+      raise_exception(e.what());
+      return NULL;
+    }
+    Py_END_ALLOW_THREADS
+
     return entry;
   } else {
     PyErr_SetNone(PyExc_StopIteration);

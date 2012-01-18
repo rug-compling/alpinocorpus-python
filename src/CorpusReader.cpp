@@ -95,12 +95,15 @@ PyObject *CorpusReader_read(CorpusReader *self, PyObject *args)
     return NULL;
 
   std::string data;
+  Py_BEGIN_ALLOW_THREADS
   try {
     data = self->reader->read(entry);
   } catch (std::runtime_error &e) {
+    Py_BLOCK_THREADS
     raise_exception(e.what());
     return NULL;
   }
+  Py_END_ALLOW_THREADS
 
   return Py_BuildValue("s#", data.c_str(), data.size());
 }
@@ -126,12 +129,15 @@ PyObject *CorpusReader_readMarkQueries(CorpusReader *self, PyObject *args)
   }
 
   std::string data;
+  Py_BEGIN_ALLOW_THREADS
   try {
     data = self->reader->read(entry, markerQueries);
   } catch (std::runtime_error &e) {
+    Py_BLOCK_THREADS
     raise_exception(e.what());
     return NULL;
   }
+  Py_END_ALLOW_THREADS
 
   return Py_BuildValue("s#", data.c_str(), data.size());
 }
@@ -140,6 +146,7 @@ PyObject *CorpusReader_entries(CorpusReader *self)
 {
   EntryIterator *iter;
   iter = (EntryIterator *) EntryIteratorType.tp_alloc(&EntryIteratorType, 0);
+
   try {
     if (iter != NULL) {
       iter->reader = self;
@@ -186,15 +193,21 @@ PyObject *CorpusReader_validQuery(CorpusReader *self, PyObject *args)
   char *query;
   if (!PyArg_ParseTuple(args, "s", &query))
     return NULL;
-   
+
+  bool valid;
+  Py_BEGIN_ALLOW_THREADS
   try {
-    if (self->reader->isValidQuery(alpinocorpus::CorpusReader::XPATH, false,
-        query))
-      return Py_True;
-    else
-      return Py_False;
+    valid = self->reader->isValidQuery(alpinocorpus::CorpusReader::XPATH, false,
+        query);
   } catch (std::runtime_error &e) {
+      Py_BLOCK_THREADS
       raise_exception(e.what());
       return NULL;
   }
+  Py_END_ALLOW_THREADS
+
+  if (valid)
+    return Py_True;
+  else
+    return Py_False;
 }
