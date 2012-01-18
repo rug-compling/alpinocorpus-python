@@ -29,6 +29,8 @@ import web
 
 import alpinocorpus
 
+from server_config import corpora
+
 urls = (
       '/corpora', 'Corpora',
       '/([^/]*)/entries/?', 'Entries',
@@ -36,25 +38,13 @@ urls = (
       '/(.*)/validate', 'QueryValidation'
 )
 
-corpora = { 
-    "cdb": {
-      "path": "/Users/daniel/Desktop/cdb.dact",
-      "shortDesc": "Eindhoven Corpus",
-      "longDesc": "Eindhoven Corpus"
-    },
-    "lassy-small": {
-      'path': "/Users/daniel/Desktop/lassy.dact",
-      'shortDesc': 'Lassy Small',
-      'longDesc': 'Lassy Small'
-    }
-}
-
 app = web.application(urls, globals())
 
 class Corpora:
   def GET(self):
     for corpus, info in corpora.iteritems():
-      yield "%s\t%d\t%s\t%s\n" % (corpus, -1, info['shortDesc'], info['longDesc'])
+      yield "%s\t%d\t%s\t%s\n" % (corpus, info['entries'],
+        info['shortDesc'], info['longDesc'])
 
 class Entries:
   def GET(self, name):
@@ -136,4 +126,5 @@ class QueryValidation:
       return web.notfound()    
 
 if __name__ == "__main__":
+
   app.run()
