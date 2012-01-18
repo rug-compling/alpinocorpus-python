@@ -37,14 +37,24 @@ urls = (
 )
 
 corpora = { 
-    "cdb": "/Users/daniel/Desktop/cdb.dact",
+    "cdb": {
+      "path": "/Users/daniel/Desktop/cdb.dact",
+      "shortDesc": "Eindhoven Corpus",
+      "longDesc": "Eindhoven Corpus"
+    },
+    "lassy-small": {
+      'path': "/Users/daniel/Desktop/lassy.dact",
+      'shortDesc': 'Lassy Small',
+      'longDesc': 'Lassy Small'
+    }
 }
 
 app = web.application(urls, globals())
 
 class Index:
   def GET(self):
-    return " ".join(corpora.keys())
+    for corpus, info in corpora.iteritems():
+      yield "%s\t%d\t%s\t%s\n" % (corpus, -1, info['shortDesc'], info['longDesc'])
 
 class Entries:
   def GET(self, name):
@@ -55,7 +65,7 @@ class Entries:
       yield web.notfound()
 
     try:
-      c = alpinocorpus.CorpusReader(corpora[name])
+      c = alpinocorpus.CorpusReader(corpora[name]['path'])
 
       # Was a query provided?
       params = web.input()
@@ -86,7 +96,7 @@ class Entry:
 
     params = web.input()
     try:
-      c = alpinocorpus.CorpusReader(corpora[name])
+      c = alpinocorpus.CorpusReader(corpora[name]['path'])
 
       # Was there a request to mark entries?
       if params.has_key('markerQuery') and params.has_key('markerAttr') and params.has_key('markerValue'):
@@ -110,7 +120,7 @@ class QueryValidation:
 
     params = web.input()
     try:
-      c = alpinocorpus.CorpusReader(corpora[name])
+      c = alpinocorpus.CorpusReader(corpora[name]['path'])
 
       # Was there a request to mark entries?
       if params.has_key('query'):
