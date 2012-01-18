@@ -19,6 +19,7 @@ PyObject *CorpusReader_entries(CorpusReader *self);
 PyObject *CorpusReader_query(CorpusReader *self, PyObject *args);
 PyObject *CorpusReader_read(CorpusReader *self, PyObject *args);
 PyObject *CorpusReader_readMarkQueries(CorpusReader *self, PyObject *args);
+PyObject *CorpusReader_size(CorpusReader *self);
 PyObject *CorpusReader_validQuery(CorpusReader *self, PyObject *args);
 
 #endif // PYTHON_CORPUSREADER_HH

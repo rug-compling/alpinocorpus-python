@@ -16,6 +16,7 @@ static PyMethodDef CorpusReader_methods[] = {
   {"query", (PyCFunction) CorpusReader_query, METH_VARARGS, "Execute a query" },
   {"read", (PyCFunction) CorpusReader_read, METH_VARARGS, "Read entry" },
   {"readMarkQueries", (PyCFunction) CorpusReader_readMarkQueries, METH_VARARGS, "Read entry, marking queries" },
+  {"size", (PyCFunction) CorpusReader_size, METH_NOARGS, "Get the number of corpus entries" },
   {"validQuery", (PyCFunction) CorpusReader_validQuery, METH_VARARGS, "Validate a query" },
   {NULL} // Sentinel
 };
@@ -186,6 +187,22 @@ PyObject *CorpusReader_query(CorpusReader *self, PyObject *args)
   }
 
   return (PyObject *) iter;
+}
+
+PyObject *CorpusReader_size(CorpusReader *self)
+{
+  size_t entries;
+  Py_BEGIN_ALLOW_THREADS
+  try {
+    entries = self->reader->size();
+  } catch (std::runtime_error &e) {
+    Py_BLOCK_THREADS
+    raise_exception(e.what());
+    return NULL;
+  }
+  Py_END_ALLOW_THREADS
+
+  return PyLong_FromSize_t(entries);
 }
 
 PyObject *CorpusReader_validQuery(CorpusReader *self, PyObject *args)
