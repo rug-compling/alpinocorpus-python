@@ -30,7 +30,7 @@ import web
 import alpinocorpus
 
 urls = (
-      '/', 'Index',
+      '/corpora', 'Corpora',
       '/([^/]*)/entries/?', 'Entries',
       '/(.*)/entry/(.*)', 'Entry',
       '/(.*)/validate', 'QueryValidation'
@@ -51,7 +51,7 @@ corpora = {
 
 app = web.application(urls, globals())
 
-class Index:
+class Corpora:
   def GET(self):
     for corpus, info in corpora.iteritems():
       yield "%s\t%d\t%s\t%s\n" % (corpus, -1, info['shortDesc'], info['longDesc'])
