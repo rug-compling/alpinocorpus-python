@@ -76,6 +76,40 @@ class Entries:
 
     except RuntimeError:
       yield web.internalerror()
+  
+  def POST(self, name):
+    web.header('Content-Type', 'text/plain') 
+    web.header('Transfer-Encoding', 'chunked') 
+
+    if not corpora.has_key(name):
+      yield web.notfound()
+
+    try:
+      c = alpinocorpus.CorpusReader(corpora[name]['path'])
+
+      params = web.input()
+
+      # Do we want to highlight something?
+      if params.has_key('markerQuery') and params.has_key('markerAttr') and params.has_key('markerValue'):
+        markerQueries = [alpinocorpus.MarkerQuery(params['markerQuery'],
+          params['markerAttr'], params['markerValue'])]
+      else:
+        markerQueries = []
+      
+      print markerQueries
+
+      # Was a query provided?
+      if params.has_key('query'):
+        gen = c.queryWithStylesheet(params['query'], web.data(), markerQueries)
+      else:
+        gen = c.entries()
+
+      # Stream (matching) entries
+      for e in gen:
+        yield "%s\t%s\n" % (e.name(), e.contents())
+    
+    except RuntimeError:
+      yield web.internalerror()
 
 class Entry:
   def GET(self, name, entry):
