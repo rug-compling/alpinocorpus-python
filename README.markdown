@@ -18,5 +18,5 @@ The server in examples/ requires the web.py framework, which can be
 installed with:
 
 ~~~
-easy_install web-py
+easy_install web.py
 ~~~
