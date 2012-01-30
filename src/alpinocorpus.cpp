@@ -5,6 +5,13 @@
 #include "EntryIterator.hh"
 #include "MarkerQuery.hh"
 
+extern "C" {
+#include <libxslt/xslt.h>
+#include <libxml/parser.h>
+#include <libxml/xpath.h>
+#include <libexslt/exslt.h>
+}
+
 void raise_exception(char const *msg)
 {
   PyObject *msgObj = Py_BuildValue("s", msg);
@@ -15,8 +22,18 @@ static PyMethodDef AlpinoCorpusMethods[] = {
   {NULL, NULL, 0, NULL}
 };
 
+// XXX - Does this conflict in any way with libxml2/lbxslt module
+//       cleanups?
+void cleanup()
+{
+  xsltCleanupGlobals();
+  xmlCleanupParser();
+}
+
 PyMODINIT_FUNC initalpinocorpus(void)
 {
+  static int initialized = 0;
+
   PyObject *m;
 
   if (PyType_Ready(&CorpusReaderType) < 0)
@@ -28,9 +45,23 @@ PyMODINIT_FUNC initalpinocorpus(void)
   if (PyType_Ready(&MarkerQueryType) < 0)
     return;
 
+  if (initialized != 0)
+    return;
+  
   m = Py_InitModule("alpinocorpus", AlpinoCorpusMethods);
   if (m == NULL)
     return;
+  
+  initialized = 1;
+
+  // libxml2/libxslt initialization
+  xmlInitMemory();
+  xmlInitParser();
+  xmlXPathInit();
+  exsltRegisterAll();
+
+  Py_AtExit(&cleanup);
+
   
   Py_INCREF(&CorpusReaderType);
   PyModule_AddObject(m, "CorpusReader", (PyObject *) &CorpusReaderType);
