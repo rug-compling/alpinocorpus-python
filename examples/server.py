@@ -40,6 +40,9 @@ urls = (
 
 app = web.application(urls, globals())
 
+def escapeNewLine(txt):
+  return txt.replace("\\n", "\\\\n").replace("\n", "\\n")
+
 class Corpora:
   def GET(self):
     for corpus, info in corpora.iteritems():
@@ -106,7 +109,7 @@ class Entries:
 
       # Stream (matching) entries
       for e in gen:
-        yield "%s\t%s\n" % (e.name(), e.contents())
+        yield "%s\t%s\n" % (e.name(), escapeNewLine(e.contents()))
     
     except RuntimeError:
       yield web.internalerror()
