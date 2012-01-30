@@ -105,7 +105,7 @@ class Entries:
       if params.has_key('query'):
         gen = c.queryWithStylesheet(params['query'], web.data(), markerQueries)
       else:
-        gen = c.entries()
+        gen = c.entriesWithStylesheet(web.data(), markerQueries)
 
       # Stream (matching) entries
       for e in gen:
