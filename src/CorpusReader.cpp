@@ -13,6 +13,8 @@
 
 static PyMethodDef CorpusReader_methods[] = {
   {"entries", (PyCFunction) CorpusReader_entries, METH_NOARGS, "Entries" },
+  {"entriesWithStylesheet", (PyCFunction) CorpusReader_entriesWithStylesheet,
+    METH_VARARGS, "Iterate over entries, transforming them with a stylesheet" },
   {"query", (PyCFunction) CorpusReader_query, METH_VARARGS, "Execute a query" },
   {"queryWithStylesheet", (PyCFunction) CorpusReader_queryWithStylesheet, METH_VARARGS, "Execute a query and transform the results with a stylesheet" },
   {"read", (PyCFunction) CorpusReader_read, METH_VARARGS, "Read entry" },
@@ -161,6 +163,35 @@ PyObject *CorpusReader_entries(CorpusReader *self)
     if (iter != NULL) {
       iter->reader = self;
       iter->iter = new alpinocorpus::CorpusReader::EntryIterator(self->reader->begin());
+
+      // Ensure the reader is not deallocated, since we need it.
+      Py_INCREF(iter->reader);
+    }
+  } catch (std::runtime_error &e) {
+    raise_exception(e.what());
+    return NULL;
+  }
+
+  return (PyObject *) iter;
+}
+
+PyObject *CorpusReader_entriesWithStylesheet(CorpusReader *self, PyObject *args)
+{
+  char *stylesheet;
+  PyObject *markerList;
+  if (!PyArg_ParseTuple(args, "sO!", &stylesheet, &PyList_Type, &markerList))
+    return NULL;
+
+  std::list<alpinocorpus::CorpusReader::MarkerQuery> markerQueries = parseMarkerQueries(markerList);
+
+  EntryIterator *iter;
+  iter = (EntryIterator *) EntryIteratorType.tp_alloc(&EntryIteratorType, 0);
+
+  try {
+    if (iter != NULL) {
+      iter->reader = self;
+      iter->iter = new alpinocorpus::CorpusReader::EntryIterator(
+        self->reader->beginWithStylesheet(stylesheet, markerQueries));
 
       // Ensure the reader is not deallocated, since we need it.
       Py_INCREF(iter->reader);
