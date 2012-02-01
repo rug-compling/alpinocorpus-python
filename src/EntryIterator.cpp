@@ -1,4 +1,4 @@
-#include <AlpinoCorpus/error.hh>
+#include <AlpinoCorpus/Error.hh>
 
 #include "alpinocorpus.h"
 #include "CorpusReader.hh"
