@@ -41,7 +41,7 @@ urls = (
 app = web.application(urls, globals())
 
 def escapeNewLine(txt):
-  return txt.replace("\\n", "\\\\n").replace("\n", "\\n")
+  return txt.replace("\\", "\\\\").replace("\n", "\\n")
 
 class Corpora:
   def GET(self):
