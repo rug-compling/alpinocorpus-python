@@ -52,7 +52,6 @@ class Corpora:
 class Entries:
   def GET(self, name):
     web.header('Content-Type', 'text/plain') 
-    web.header('Transfer-Encoding', 'chunked') 
 
     if not corpora.has_key(name):
       yield web.notfound()
@@ -82,7 +81,6 @@ class Entries:
   
   def POST(self, name):
     web.header('Content-Type', 'text/plain') 
-    web.header('Transfer-Encoding', 'chunked') 
 
     if not corpora.has_key(name):
       yield web.notfound()
