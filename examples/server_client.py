@@ -1,5 +1,6 @@
 import httplib
 import urllib
+import sys
 
 stylesheet_path = "bracketed-sentence.xsl"
 
@@ -22,4 +23,10 @@ response = conn.getresponse()
 
 print response.status, response.reason
 
-print response.read()
+while True:
+  data = response.read(20)
+  if len(data) == 0:
+    break
+
+  sys.stdout.write(data)
+
