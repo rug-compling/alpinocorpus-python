@@ -40,8 +40,8 @@ urls = (
 
 app = web.application(urls, globals())
 
-def escapeNewLine(txt):
-  return txt.replace("\\", "\\\\").replace("\n", "\\n")
+def escapeSpecials(txt):
+  return txt.replace('\\', '\\\\').replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t')
 
 class Corpora:
   def GET(self):
@@ -105,7 +105,7 @@ class Entries:
 
       # Stream (matching) entries
       for e in gen:
-        yield "%s\t%s\n" % (e.name(), escapeNewLine(e.contents()))
+        yield "%s\t%s\n" % (e.name(), escapeSpecials(e.contents()))
     
     except RuntimeError:
       yield web.internalerror()
