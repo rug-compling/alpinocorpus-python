@@ -63,7 +63,7 @@ class Entries:
       params = web.input()
       contents = False
       if params.has_key('query'):
-        gen = c.query(params['query'])
+        gen = c.query(params['query'].encode('utf-8'))
         if params.has_key('contents') and params.get('contents') == '1':
           contents = True
       else:
@@ -92,7 +92,7 @@ class Entries:
 
       # Do we want to highlight something?
       if params.has_key('markerQuery') and params.has_key('markerAttr') and params.has_key('markerValue'):
-        markerQueries = [alpinocorpus.MarkerQuery(params['markerQuery'],
+        markerQueries = [alpinocorpus.MarkerQuery(params['markerQuery'].encode('utf-8'),
           params['markerAttr'], params['markerValue'])]
       else:
         markerQueries = []
@@ -101,7 +101,7 @@ class Entries:
 
       # Was a query provided?
       if params.has_key('query'):
-        gen = c.queryWithStylesheet(params['query'], web.data(), markerQueries)
+        gen = c.queryWithStylesheet(params['query'].encode('utf-8'), web.data(), markerQueries)
       else:
         gen = c.entriesWithStylesheet(web.data(), markerQueries)
 
@@ -125,7 +125,7 @@ class Entry:
 
       # Was there a request to mark entries?
       if params.has_key('markerQuery') and params.has_key('markerAttr') and params.has_key('markerValue'):
-        queries = [alpinocorpus.MarkerQuery(params['markerQuery'],
+        queries = [alpinocorpus.MarkerQuery(params['markerQuery'].encode('utf-8'),
           params['markerAttr'], params['markerValue'])]
         data = c.readMarkQueries(entry, queries)
       else:
@@ -149,7 +149,7 @@ class QueryValidation:
 
       # Was there a request to mark entries?
       if params.has_key('query'):
-        query = params.get('query')
+        query = params.get('query').encode('utf-8')
         if c.validQuery(query):
           return '1'
         else:
