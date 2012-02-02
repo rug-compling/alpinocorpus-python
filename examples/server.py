@@ -97,8 +97,6 @@ class Entries:
       else:
         markerQueries = []
       
-      print markerQueries
-
       # Was a query provided?
       if params.has_key('query'):
         gen = c.queryWithStylesheet(params['query'].encode('utf-8'), web.data(), markerQueries)
