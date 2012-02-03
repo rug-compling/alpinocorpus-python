@@ -31,6 +31,9 @@ import alpinocorpus
 
 from server_config import corpora
 
+import os
+from stat import *
+
 urls = (
       '/corpora', 'Corpora',
       '/([^/]*)/entries/?', 'Entries',
@@ -43,11 +46,35 @@ app = web.application(urls, globals())
 def escapeSpecials(txt):
   return txt.replace('\\', '\\\\').replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t')
 
+def escapeXML(txt):
+  return txt.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").encode("ascii", "xmlcharrefreplace")
+
 class Corpora:
   def GET(self):
-    for corpus, info in corpora.iteritems():
-      yield "%s\t%d\t%s\t%s\n" % (corpus, info['entries'],
-        info['shortDesc'], info['longDesc'])
+    params = web.input()
+    if params.get('plain', "") == '1':
+      for corpus, info in corpora.iteritems():
+        yield "%s\t%d\t%s\t%s\n" % (corpus, info['entries'],
+                                    info['shortDesc'], info['longDesc'])
+    else:
+      yield "<corpusarchive>\n"
+      corpusnames = corpora.keys()
+      corpusnames.sort()
+      for corpus in corpusnames:
+        info = corpora[corpus]
+        try:
+          size = "%d" % os.stat(info['path']).st_size
+        except:
+          size = ""
+        yield """<corpus>
+          <filename>%s</filename>
+          <filesize>%s</filesize>
+          <sentences>%d</sentences>
+          <shortdesc>%s</shortdesc>
+          <desc>%s</desc>
+        </corpus>
+""" % (corpus, size, info['entries'], escapeXML(info['shortDesc']), escapeXML(info['longDesc']))
+      yield "</corpusarchive>\n"
 
 class Entries:
   def GET(self, name):
