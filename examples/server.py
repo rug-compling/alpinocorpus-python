@@ -52,11 +52,9 @@ def escapeXML(txt):
 class Corpora:
   def GET(self):
     params = web.input()
-    if params.get('plain', "") == '1':
-      for corpus, info in corpora.iteritems():
-        yield "%s\t%d\t%s\t%s\n" % (corpus, info['entries'],
-                                    info['shortDesc'], info['longDesc'])
-    else:
+    if params.get('xml', "") == '1':
+      web.header('Content-Type', 'text/xml')
+
       yield "<corpusarchive>\n"
       corpusnames = corpora.keys()
       corpusnames.sort()
@@ -76,9 +74,15 @@ class Corpora:
 """ % (corpus, size, info['entries'], escapeXML(info['shortDesc']), escapeXML(info['longDesc']))
       yield "</corpusarchive>\n"
 
+    else:
+      web.header('Content-Type', 'text/plain; charset=utf-8')
+      for corpus, info in corpora.iteritems():
+        yield "%s\t%d\t%s\t%s\n" % (corpus, info['entries'],
+                                    info['shortDesc'].encode('utf-8'), info['longDesc'].encode('utf-8'))
+
 class Entries:
   def GET(self, name):
-    web.header('Content-Type', 'text/plain') 
+    web.header('Content-Type', 'text/plain')
 
     if not corpora.has_key(name):
       yield web.notfound()
@@ -105,9 +109,9 @@ class Entries:
 
     except RuntimeError:
       yield web.internalerror()
-  
+
   def POST(self, name):
-    web.header('Content-Type', 'text/plain') 
+    web.header('Content-Type', 'text/plain')
 
     if not corpora.has_key(name):
       yield web.notfound()
@@ -123,7 +127,7 @@ class Entries:
           params['markerAttr'], params['markerValue'])]
       else:
         markerQueries = []
-      
+
       # Was a query provided?
       if params.has_key('query'):
         gen = c.queryWithStylesheet(params['query'].encode('utf-8'), web.data(), markerQueries)
@@ -133,13 +137,13 @@ class Entries:
       # Stream (matching) entries
       for e in gen:
         yield "%s\t%s\n" % (e.name(), escapeSpecials(e.contents()))
-    
+
     except RuntimeError:
       yield web.internalerror()
 
 class Entry:
   def GET(self, name, entry):
-    web.header('Content-Type', 'text/xml') 
+    web.header('Content-Type', 'text/xml')
 
     if not corpora.has_key(name):
       return web.notfound()
@@ -183,7 +187,7 @@ class QueryValidation:
         return web.notfound()
 
     except RuntimeError:
-      return web.notfound()    
+      return web.notfound()
 
 if __name__ == "__main__":
 
