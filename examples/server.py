@@ -32,7 +32,7 @@ import alpinocorpus
 from server_config import corpora
 
 import os
-from stat import *
+from stat import st_size
 
 urls = (
       '/corpora', 'Corpora',
