@@ -4,13 +4,13 @@ import alpinocorpus
 corpora = { 
     "cdb": {
       "path": "/Users/daniel/Desktop/cdb.dact",
-      "shortDesc": "Eindhoven Corpus",
-      "longDesc": "Eindhoven Corpus"
+      "shortDesc": u"Eindhoven Corpus",
+      "longDesc": u"Eindhoven Corpus"
     },
     "lassy-small": {
       'path': "/Users/daniel/Desktop/lassy.dact",
-      'shortDesc': 'Lassy Small',
-      'longDesc': 'Lassy Small'
+      'shortDesc': u'Lassy Small',
+      'longDesc': u'Lassy Small'
     }
 }
 
