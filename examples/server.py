@@ -31,8 +31,6 @@ import alpinocorpus
 
 from server_config import corpora
 
-import os
-
 urls = (
       '/corpora', 'Corpora',
       '/([^/]*)/entries/?', 'Entries',
@@ -55,29 +53,23 @@ class Corpora:
       web.header('Content-Type', 'text/xml')
 
       yield "<corpusarchive>\n"
-      corpusnames = corpora.keys()
-      corpusnames.sort()
-      for corpus in corpusnames:
+      for corpus in sorted(corpora):
         info = corpora[corpus]
-        try:
-          size = "%d" % os.stat(info['path']).st_size
-        except:
-          size = ""
         yield """<corpus>
           <filename>%s</filename>
-          <filesize>%s</filesize>
+          <filesize>%d</filesize>
           <sentences>%d</sentences>
           <shortdesc>%s</shortdesc>
           <desc>%s</desc>
         </corpus>
-""" % (corpus, size, info['entries'], escapeXML(info['shortDesc']), escapeXML(info['longDesc']))
+""" % (corpus, info['filesize'], info['entries'], escapeXML(info['shortdesc']), escapeXML(info['longdesc']))
       yield "</corpusarchive>\n"
 
     else:
       web.header('Content-Type', 'text/plain; charset=utf-8')
       for corpus, info in corpora.iteritems():
         yield "%s\t%d\t%s\t%s\n" % (corpus, info['entries'],
-                                    info['shortDesc'].encode('utf-8'), info['longDesc'].encode('utf-8'))
+                                    escapeSpecials(info['shortdesc']).encode('utf-8'), escapeSpecials(info['longdesc']).encode('utf-8'))
 
 class Entries:
   def GET(self, name):

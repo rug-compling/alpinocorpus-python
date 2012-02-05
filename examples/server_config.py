@@ -1,29 +1,33 @@
-# -*- coding: utf-8 -*-
 import alpinocorpus
+import os
+import ConfigParser
 
-corpora = { 
-    "cdb": {
-      "path": "/Users/daniel/Desktop/cdb.dact",
-      "shortDesc": u"Eindhoven Corpus",
-      "longDesc": u"Eindhoven Corpus"
-    },
-    "lassy-small": {
-      'path': "/Users/daniel/Desktop/lassy.dact",
-      'shortDesc': u'Lassy Small',
-      'longDesc': u'Lassy Small'
-    }
-}
+ini = ConfigParser.ConfigParser()
+ini.read("corpora.ini")
+corpora = {}
+for corpus in ini.sections():
+    corpora[corpus] = {}
+    for name, value in ini.items(corpus):
+        if name == "shortdesc" or name == "longdesc":
+            corpora[corpus][name] = value.decode("utf-8")
+        else:
+            corpora[corpus][name] = value
 
 removes = list()
 
 for name, info in corpora.iteritems():
-  try:
-    c = alpinocorpus.CorpusReader(info['path'])
-    info['entries'] = c.size()
-  except RuntimeError:
-    print "Could not open %s, removing corpus" % name
-    removes.append(name)
+    try:
+        size = os.stat(info['path']).st_size
+    except:
+        size = 0
+    info['filesize'] = size
+    try:
+        c = alpinocorpus.CorpusReader(info['path'])
+        info['entries'] = c.size()
+    except RuntimeError:
+        print "Could not open %s, removing corpus" % name
+        removes.append(name)
 
 for r in removes:
-  print r
-  del(corpora[r])
+    print r
+    del(corpora[r])
