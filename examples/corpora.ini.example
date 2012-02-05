@@ -1,0 +1,27 @@
+# -*- coding: utf-8 -*-
+
+[cdb]
+path: /net/aistaff/kleiweg/alpino/corpora/cdb.dact
+shortdesc: Eindhoven Corpus
+longdesc: Newspaper-part of the Eindhoven corpus
+
+[geloof]
+path: /net/aistaff/kleiweg/alpino/corpora/geloof.dact
+shortdesc: Het geloof der kameraden (Book)
+longdesc: The book ‘Het geloof der kameraden’ based on lectures of Karel van het Reve
+
+[senseval]
+path: /net/aistaff/kleiweg/alpino/corpora/senseval.dact
+shortdesc: Senseval
+longdesc: Dutch sentences from the Senseval competition
+
+[troonrede]
+path: /net/aistaff/kleiweg/alpino/corpora/troonrede.dact
+shortdesc: Troonredes 1990-2011
+longdesc: Troonredes (throne speeches) of the Queen of the Neterlands 1990-2011
+
+[wikipedia-selection]
+path: /net/aistaff/kleiweg/alpino/corpora/wikipedia-selection.dact
+shortdesc: Dutch Wikipedia sample
+longdesc: Random sample of 100,000 sentences from the Dutch Wikipedia
+
