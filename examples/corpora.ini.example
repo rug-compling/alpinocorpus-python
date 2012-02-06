@@ -23,7 +23,7 @@ path: %(pre)s/troonrede.dact
 shortdesc: Troonredes 1990-2011
 longdesc: Troonredes (throne speeches) of the Queen of the Neterlands 1990-2011
 
-[wikipedia-selection]
+[wikipedia]
 path: %(pre)s/wikipedia-selection.dact
 shortdesc: Dutch Wikipedia sample
 longdesc: Random sample of 100,000 sentences from the Dutch Wikipedia

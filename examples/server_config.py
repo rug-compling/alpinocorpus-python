@@ -10,7 +10,7 @@ for corpus in ini.sections():
     for name, value in ini.items(corpus):
         if name == "shortdesc" or name == "longdesc":
             corpora[corpus][name] = value.decode("utf-8")
-        else:
+        elif name == "path":
             corpora[corpus][name] = value
 
 removes = list()
@@ -25,9 +25,8 @@ for name, info in corpora.iteritems():
         c = alpinocorpus.CorpusReader(info['path'])
         info['entries'] = c.size()
     except RuntimeError:
-        print "Could not open %s, removing corpus" % name
         removes.append(name)
 
 for r in removes:
-    print r
+    print "Could not open %s, removing corpus" % r
     del(corpora[r])
