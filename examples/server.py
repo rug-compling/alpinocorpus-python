@@ -65,7 +65,7 @@ class Corpora:
           <shortdesc>%s</shortdesc>
           <desc>%s</desc>
         </corpus>
-""" % (corpus, info['filesize'], info['entries'], escapeXML(info['shortdesc']), escapeXML(info['longdesc']))
+""" % (corpus, info['filesize'], info['entries'], escapeXML(info['shortdesc']), escapeXML(info['desc']))
       yield "</corpusarchive>\n"
 
     elif ext == '.js' or ext == '.json':
@@ -97,7 +97,7 @@ class Corpora:
       for corpus in sorted(corpora):
         info = corpora[corpus]
         yield "%s\t%d\t%s\t%s\n" % (corpus, info['entries'],
-                                    escapeSpecials(info['shortdesc']).encode('utf-8'), escapeSpecials(info['longdesc']).encode('utf-8'))
+                                    escapeSpecials(info['shortdesc']).encode('utf-8'), escapeSpecials(info['desc']).encode('utf-8'))
 
 
 class Entries:
