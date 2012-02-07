@@ -101,7 +101,7 @@ class Corpora:
 
 class Entries:
   def GET(self, name):
-    web.header('Content-Type', 'text/plain')
+    web.header('Content-Type', 'text/plain; charset=utf-8')
 
     if not corpora.has_key(name):
       yield web.notfound()
@@ -122,7 +122,7 @@ class Entries:
       # Stream (matching) entries
       for e in gen:
         if contents:
-          yield "%s\t%s\n" % (e.name(), e.contents())
+          yield "%s\t%s\n" % (e.name(), escapeSpecials(e.contents()))
         else:
           yield "%s\n" % e.name()
 
@@ -130,7 +130,7 @@ class Entries:
       yield web.internalerror()
 
   def POST(self, name):
-    web.header('Content-Type', 'text/plain')
+    web.header('Content-Type', 'text/plain; charset=utf-8')
 
     if not corpora.has_key(name):
       yield web.notfound()
