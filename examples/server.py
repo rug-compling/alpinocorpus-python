@@ -11,9 +11,10 @@
 #
 # The API of this server is pretty simple: the following URLS are used:
 #
-# * /                       : provides a list of corpora
-# * /<corpus>/entries       : provides a list of entries in the given corpus
-# * /<corpus>/entry/<entry> : retrieve an entry from a corpus
+# * /corpora                  : provides a list of corpora, tab separated values
+# * /corpora.(js|json|xml)    : provides a list of corpora, javascript, json, xml
+# * /<corpus>/entries         : provides a list of entries in the given corpus
+# * /<corpus>/entry/<entry>   : retrieve an entry from a corpus
 #
 # The list of entries can be filtered by providing the 'query' parameter with
 # an XPath query.
@@ -25,14 +26,14 @@
 # * markerAttr  : marker attribute
 # * markerValue : marker value
 
-import web
+import json, web
 
 import alpinocorpus
 
 from server_config import corpora
 
 urls = (
-      '/corpora', 'Corpora',
+      '/corpora(|\\.js|\\.json|\\.xml)', 'Corpora',
       '/([^/]*)/entries/?', 'Entries',
       '/(.*)/entry/(.*)', 'Entry',
       '/(.*)/validate', 'QueryValidation'
@@ -47,9 +48,10 @@ def escapeXML(txt):
   return txt.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").encode("ascii", "xmlcharrefreplace")
 
 class Corpora:
-  def GET(self):
-    params = web.input()
-    if params.get('xml', "") == '1':
+  def GET(self, ext):
+
+    if ext == '.xml':
+
       web.header('Content-Type', 'text/xml')
 
       yield "<corpusarchive>\n"
@@ -65,11 +67,37 @@ class Corpora:
 """ % (corpus, info['filesize'], info['entries'], escapeXML(info['shortdesc']), escapeXML(info['longdesc']))
       yield "</corpusarchive>\n"
 
-    else:
-      web.header('Content-Type', 'text/plain; charset=utf-8')
+    elif ext == '.js' or ext == '.json':
+
+      if ext == '.js':
+        mst = 'javascript'
+      else:
+        mst = 'json'
+      web.header('Content-Type', 'application/%s' % mst)
+
+      if ext == '.js':
+        yield "var corpora = "
+      c = {}
       for corpus, info in corpora.iteritems():
+        c[corpus] = {}
+        for i in info:
+          if i != "path":
+            c[corpus][i] = info[i]
+      yield json.dumps(c, sort_keys=True).replace('"}, "', '"},\n "')
+      if ext == '.js':
+        yield ";\n"
+      else:
+        yield "\n"
+
+    else:
+
+      web.header('Content-Type', 'text/plain; charset=utf-8')
+
+      for corpus in sorted(corpora):
+        info = corpora[corpus]
         yield "%s\t%d\t%s\t%s\n" % (corpus, info['entries'],
                                     escapeSpecials(info['shortdesc']).encode('utf-8'), escapeSpecials(info['longdesc']).encode('utf-8'))
+
 
 class Entries:
   def GET(self, name):
