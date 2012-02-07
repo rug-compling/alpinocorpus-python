@@ -121,7 +121,7 @@ class Entries:
       contents = False
       if params.has_key('query'):
         gen = c.query(params['query'].encode('utf-8'))
-        if params.has_key('contents') and params.get('contents') == '1':
+        if params.get('contents', '') == '1':
           contents = True
       else:
         gen = c.entries()
@@ -153,10 +153,17 @@ class Entries:
       yield web.internalerror()
 
   def POST(self, name, ext):
-    web.header('Content-Type', 'text/plain; charset=utf-8')
 
     if not corpora.has_key(name):
       yield web.notfound()
+      return # ??
+
+    if ext == '.js':
+      web.header('Content-Type', 'application/javascript')
+    if ext == '.json':
+      web.header('Content-Type', 'application/json')
+    else:
+      web.header('Content-Type', 'text/plain; charset=utf-8')
 
     try:
       c = alpinocorpus.CorpusReader(corpora[name]['path'])
@@ -177,8 +184,21 @@ class Entries:
         gen = c.entriesWithStylesheet(web.data(), markerQueries)
 
       # Stream (matching) entries
+      if ext == '.js':
+        pre = 'var ac_entries = [ '
+      else:
+        pre = '[ '
       for e in gen:
-        yield "%s\t%s\n" % (e.name(), escapeSpecials(e.contents()))
+        if ext[:3] == '.js':
+          yield  pre + json.dumps([e.name(), e.contents()])
+        else:
+          yield "%s\t%s\n" % (e.name(), escapeSpecials(e.contents()))
+        pre = ",\n  "
+      if pre == ",\n  ":
+        if ext == '.json':
+          yield " ]\n"
+        elif ext == '.js':
+          yield ' ];\n'
 
     except RuntimeError:
       yield web.internalerror()
