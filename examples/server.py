@@ -11,10 +11,11 @@
 #
 # The API of this server is pretty simple: the following URLS are used:
 #
-# * /corpora                  : provides a list of corpora, tab separated values
-# * /corpora.(js|json|xml)    : provides a list of corpora, javascript, json, xml
-# * /<corpus>/entries         : provides a list of entries in the given corpus
-# * /<corpus>/entry/<entry>   : retrieve an entry from a corpus
+# * /corpora                    : provides a list of corpora, tab separated values
+# * /corpora.(js|json|xml)      : provides a list of corpora, javascript, json, xml
+# * /<corpus>/entries           : provides a list of entries in the given corpus, tab separated values
+# * /<corpus>/entries.(js|json) : provides a list of entries in the given corpus, javascript, json
+# * /<corpus>/entry/<entry>     : retrieve an entry from a corpus
 #
 # The list of entries can be filtered by providing the 'query' parameter with
 # an XPath query.
@@ -34,7 +35,7 @@ from server_config import corpora
 
 urls = (
       '/corpora(|\\.js|\\.json|\\.xml)', 'Corpora',
-      '/([^/]*)/entries/?', 'Entries',
+      '/([^/]*)/entries(|\\.js|\\.json)/?', 'Entries',
       '/(.*)/entry/(.*)', 'Entry',
       '/(.*)/validate', 'QueryValidation'
 )
@@ -76,7 +77,7 @@ class Corpora:
       web.header('Content-Type', 'application/%s' % mst)
 
       if ext == '.js':
-        yield "var corpora = "
+        yield "var ac_corpora = "
       c = {}
       for corpus, info in corpora.iteritems():
         c[corpus] = {}
@@ -100,11 +101,17 @@ class Corpora:
 
 
 class Entries:
-  def GET(self, name):
-    web.header('Content-Type', 'text/plain; charset=utf-8')
-
+  def GET(self, name, ext):
     if not corpora.has_key(name):
       yield web.notfound()
+      return # ??
+
+    if ext == '.js':
+      web.header('Content-Type', 'application/javascript')
+    if ext == '.json':
+      web.header('Content-Type', 'application/json')
+    else:
+      web.header('Content-Type', 'text/plain; charset=utf-8')
 
     try:
       c = alpinocorpus.CorpusReader(corpora[name]['path'])
@@ -120,16 +127,32 @@ class Entries:
         gen = c.entries()
 
       # Stream (matching) entries
+      if ext == '.js':
+        pre = 'var ac_entries = [ '
+      else:
+        pre = '[ '
       for e in gen:
         if contents:
-          yield "%s\t%s\n" % (e.name(), escapeSpecials(e.contents()))
+          if ext[:3] == '.js':
+            yield  pre + json.dumps([e.name(), escapeSpecials(e.contents())])
+          else:
+            yield "%s\t%s\n" % (e.name(), escapeSpecials(e.contents()))
         else:
-          yield "%s\n" % e.name()
+          if ext[:3] == '.js':
+            yield pre + json.dumps(e.name())
+          else:
+            yield "%s\n" % e.name()
+        pre = ",\n  "
+      if pre == ",\n  ":
+        if ext == '.json':
+          yield " ]\n"
+        elif ext == '.js':
+          yield ' ];\n'
 
     except RuntimeError:
       yield web.internalerror()
 
-  def POST(self, name):
+  def POST(self, name, ext):
     web.header('Content-Type', 'text/plain; charset=utf-8')
 
     if not corpora.has_key(name):
