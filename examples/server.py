@@ -37,7 +37,7 @@ urls = (
       '/corpora(|\\.js|\\.json|\\.xml)', 'Corpora',
       '/([^/]*)/entries(|\\.js|\\.json)/?', 'Entries',
       '/([^/]*)/entry/(.*)', 'Entry',
-      '/([^/]*)/validate', 'QueryValidation'
+      '/([^/]*)/validate', 'QueryValidation',
       '/([^/]*)/validQuery', 'QueryValidation'
 )
 
