@@ -36,8 +36,9 @@ from server_config import corpora
 urls = (
       '/corpora(|\\.js|\\.json|\\.xml)', 'Corpora',
       '/([^/]*)/entries(|\\.js|\\.json)/?', 'Entries',
-      '/(.*)/entry/(.*)', 'Entry',
-      '/(.*)/validate', 'QueryValidation'
+      '/([^/]*)/entry/(.*)', 'Entry',
+      '/([^/]*)/validate', 'QueryValidation'
+      '/([^/]*)/validQuery', 'QueryValidation'
 )
 
 app = web.application(urls, globals())
