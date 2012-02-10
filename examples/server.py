@@ -114,6 +114,7 @@ class Entries:
             web.header('Content-Type', 'application/json')
         else:
             web.header('Content-Type', 'text/plain; charset=utf-8')
+            yield "\002\n"
 
         try:
             c = alpinocorpus.CorpusReader(corpora[name]['path'])
@@ -169,6 +170,7 @@ class Entries:
             web.header('Content-Type', 'application/json')
         else:
             web.header('Content-Type', 'text/plain; charset=utf-8')
+            yield "\002\n"
 
         try:
             c = alpinocorpus.CorpusReader(corpora[name]['path'])
