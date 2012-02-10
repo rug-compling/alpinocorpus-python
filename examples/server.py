@@ -34,229 +34,231 @@ import alpinocorpus
 from server_config import corpora
 
 urls = (
-      '/corpora(|\\.js|\\.json|\\.xml)', 'Corpora',
-      '/([^/]*)/entries(|\\.js|\\.json)/?', 'Entries',
-      '/([^/]*)/entry/(.*)', 'Entry',
-      '/([^/]*)/validate', 'QueryValidation',
-      '/([^/]*)/validQuery', 'QueryValidation'
+    '/corpora(|\\.js|\\.json|\\.xml)', 'Corpora',
+    '/([^/]*)/entries(|\\.js|\\.json)/?', 'Entries',
+    '/([^/]*)/entry/(.*)', 'Entry',
+    '/([^/]*)/validate', 'QueryValidation',
+    '/([^/]*)/validQuery', 'QueryValidation'
 )
 
 app = web.application(urls, globals())
 
 def escapeSpecials(txt):
-  return txt.replace('\\', '\\\\').replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t')
+    return txt.replace('\\', '\\\\').replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t')
 
 def escapeXML(txt):
-  return txt.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").encode("ascii", "xmlcharrefreplace")
+    return txt.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").encode("ascii", "xmlcharrefreplace")
 
 class Corpora:
-  def GET(self, ext):
+    def GET(self, ext):
 
-    if ext == '.xml':
+        if ext == '.xml':
 
-      web.header('Content-Type', 'text/xml')
+            web.header('Content-Type', 'text/xml')
 
-      yield "<corpusarchive>\n"
-      for corpus in sorted(corpora):
-        info = corpora[corpus]
-        yield """<corpus>
-          <filename>%s</filename>
-          <filesize>%d</filesize>
-          <sentences>%d</sentences>
-          <shortdesc>%s</shortdesc>
-          <desc>%s</desc>
-        </corpus>
+            yield "<corpusarchive>\n"
+            for corpus in sorted(corpora):
+                info = corpora[corpus]
+                yield """<corpus>
+                    <filename>%s</filename>
+                    <filesize>%d</filesize>
+                    <sentences>%d</sentences>
+                    <shortdesc>%s</shortdesc>
+                    <desc>%s</desc>
+                </corpus>
 """ % (corpus, info['filesize'], info['entries'], escapeXML(info['shortdesc']), escapeXML(info['desc']))
-      yield "</corpusarchive>\n"
+            yield "</corpusarchive>\n"
 
-    elif ext == '.js' or ext == '.json':
+        elif ext == '.js' or ext == '.json':
 
-      if ext == '.js':
-        mst = 'javascript'
-      else:
-        mst = 'json'
-      web.header('Content-Type', 'application/%s' % mst)
+            if ext == '.js':
+                mst = 'javascript'
+            else:
+                mst = 'json'
+            web.header('Content-Type', 'application/%s' % mst)
 
-      if ext == '.js':
-        yield "var ac_corpora = "
-      c = {}
-      for corpus, info in corpora.iteritems():
-        c[corpus] = {}
-        for i in info:
-          if i != "path":
-            c[corpus][i] = info[i]
-      yield json.dumps(c, sort_keys=True).replace('"}, "', '"},\n "')
-      if ext == '.js':
-        yield ";\n"
-      else:
-        yield "\n"
+            if ext == '.js':
+                yield "var ac_corpora = "
+            c = {}
+            for corpus, info in corpora.iteritems():
+                c[corpus] = {}
+                for i in info:
+                    if i != "path":
+                        c[corpus][i] = info[i]
+            yield json.dumps(c, sort_keys=True).replace('"}, "', '"},\n "')
+            if ext == '.js':
+                yield ";\n"
+            else:
+                yield "\n"
 
-    else:
+        else:
 
-      web.header('Content-Type', 'text/plain; charset=utf-8')
+            web.header('Content-Type', 'text/plain; charset=utf-8')
 
-      for corpus in sorted(corpora):
-        info = corpora[corpus]
-        yield "%s\t%d\t%s\t%s\n" % (corpus, info['entries'],
-                                    escapeSpecials(info['shortdesc']).encode('utf-8'), escapeSpecials(info['desc']).encode('utf-8'))
+            for corpus in sorted(corpora):
+                info = corpora[corpus]
+                yield "%s\t%d\t%s\t%s\n" % (corpus,
+                                            info['entries'],
+                                            escapeSpecials(info['shortdesc']).encode('utf-8'),
+                                            escapeSpecials(info['desc']).encode('utf-8'))
 
 class Entries:
-  def GET(self, name, ext):
-    if not corpora.has_key(name):
-      yield web.notfound()
-      return # ??
+    def GET(self, name, ext):
+        if not corpora.has_key(name):
+            yield web.notfound()
+            return # ??
 
-    if ext == '.js':
-      web.header('Content-Type', 'application/javascript')
-    if ext == '.json':
-      web.header('Content-Type', 'application/json')
-    else:
-      web.header('Content-Type', 'text/plain; charset=utf-8')
-
-    try:
-      c = alpinocorpus.CorpusReader(corpora[name]['path'])
-
-      # Was a query provided?
-      params = web.input()
-      contents = False
-      if params.has_key('query'):
-        gen = c.query(params['query'].encode('utf-8'))
-        if params.get('contents', '') == '1':
-          contents = True
-      else:
-        gen = c.entries()
-
-      # Stream (matching) entries
-      if ext == '.js':
-        pre = 'var ac_entries = [ '
-      else:
-        pre = '[ '
-      for e in gen:
-        if contents:
-          if ext[:3] == '.js':
-            yield  pre + json.dumps([e.name(), escapeSpecials(e.contents())])
-          else:
-            yield "%s\t%s\n" % (e.name(), escapeSpecials(e.contents()))
-        else:
-          if ext[:3] == '.js':
-            yield pre + json.dumps(e.name())
-          else:
-            yield "%s\n" % e.name()
-        pre = ",\n  "
-      if pre == ",\n  ":
+        if ext == '.js':
+            web.header('Content-Type', 'application/javascript')
         if ext == '.json':
-          yield " ]\n"
-        elif ext == '.js':
-          yield ' ];\n'
-
-    except RuntimeError:
-      yield web.internalerror()
-
-    if ext == '':
-      yield "\004"
-
-  def POST(self, name, ext):
-
-    if not corpora.has_key(name):
-      yield web.notfound()
-      return # ??
-
-    if ext == '.js':
-      web.header('Content-Type', 'application/javascript')
-    if ext == '.json':
-      web.header('Content-Type', 'application/json')
-    else:
-      web.header('Content-Type', 'text/plain; charset=utf-8')
-
-    try:
-      c = alpinocorpus.CorpusReader(corpora[name]['path'])
-
-      params = web.input()
-
-      # Do we want to highlight something?
-      if params.has_key('markerQuery') and params.has_key('markerAttr') and params.has_key('markerValue'):
-        markerQueries = [alpinocorpus.MarkerQuery(params['markerQuery'].encode('utf-8'),
-          params['markerAttr'], params['markerValue'])]
-      else:
-        markerQueries = []
-
-      # Was a query provided?
-      if params.has_key('query'):
-        gen = c.queryWithStylesheet(params['query'].encode('utf-8'), web.data(), markerQueries)
-      else:
-        gen = c.entriesWithStylesheet(web.data(), markerQueries)
-
-      # Stream (matching) entries
-      if ext == '.js':
-        pre = 'var ac_entries = [ '
-      else:
-        pre = '[ '
-      for e in gen:
-        if ext[:3] == '.js':
-          yield  pre + json.dumps([e.name(), e.contents()])
+            web.header('Content-Type', 'application/json')
         else:
-          yield "%s\t%s\n" % (e.name(), escapeSpecials(e.contents()))
-        pre = ",\n  "
-      if pre == ",\n  ":
+            web.header('Content-Type', 'text/plain; charset=utf-8')
+
+        try:
+            c = alpinocorpus.CorpusReader(corpora[name]['path'])
+
+            # Was a query provided?
+            params = web.input()
+            contents = False
+            if params.has_key('query'):
+                gen = c.query(params['query'].encode('utf-8'))
+                if params.get('contents', '') == '1':
+                    contents = True
+            else:
+                gen = c.entries()
+
+            # Stream (matching) entries
+            if ext == '.js':
+                pre = 'var ac_entries = [ '
+            else:
+                pre = '[ '
+            for e in gen:
+                if contents:
+                    if ext[:3] == '.js':
+                        yield  pre + json.dumps([e.name(), escapeSpecials(e.contents())])
+                    else:
+                        yield "%s\t%s\n" % (e.name(), escapeSpecials(e.contents()))
+                else:
+                    if ext[:3] == '.js':
+                        yield pre + json.dumps(e.name())
+                    else:
+                        yield "%s\n" % e.name()
+                pre = ",\n  "
+            if pre == ",\n  ":
+                if ext == '.json':
+                    yield " ]\n"
+                elif ext == '.js':
+                    yield ' ];\n'
+
+        except RuntimeError:
+            yield web.internalerror()
+
+        if ext == '':
+            yield "\004"
+
+    def POST(self, name, ext):
+
+        if not corpora.has_key(name):
+            yield web.notfound()
+            return # ??
+
+        if ext == '.js':
+            web.header('Content-Type', 'application/javascript')
         if ext == '.json':
-          yield " ]\n"
-        elif ext == '.js':
-          yield ' ];\n'
+            web.header('Content-Type', 'application/json')
+        else:
+            web.header('Content-Type', 'text/plain; charset=utf-8')
 
-    except RuntimeError:
-      yield web.internalerror()
+        try:
+            c = alpinocorpus.CorpusReader(corpora[name]['path'])
 
-    if ext == '':
-      yield "\004"
+            params = web.input()
+
+            # Do we want to highlight something?
+            if params.has_key('markerQuery') and params.has_key('markerAttr') and params.has_key('markerValue'):
+                markerQueries = [alpinocorpus.MarkerQuery(params['markerQuery'].encode('utf-8'),
+                    params['markerAttr'], params['markerValue'])]
+            else:
+                markerQueries = []
+
+            # Was a query provided?
+            if params.has_key('query'):
+                gen = c.queryWithStylesheet(params['query'].encode('utf-8'), web.data(), markerQueries)
+            else:
+                gen = c.entriesWithStylesheet(web.data(), markerQueries)
+
+            # Stream (matching) entries
+            if ext == '.js':
+                pre = 'var ac_entries = [ '
+            else:
+                pre = '[ '
+            for e in gen:
+                if ext[:3] == '.js':
+                    yield  pre + json.dumps([e.name(), e.contents()])
+                else:
+                    yield "%s\t%s\n" % (e.name(), escapeSpecials(e.contents()))
+                pre = ",\n  "
+            if pre == ",\n  ":
+                if ext == '.json':
+                    yield " ]\n"
+                elif ext == '.js':
+                    yield ' ];\n'
+
+        except RuntimeError:
+            yield web.internalerror()
+
+        if ext == '':
+            yield "\004"
 
 class Entry:
-  def GET(self, name, entry):
-    web.header('Content-Type', 'text/xml')
+    def GET(self, name, entry):
+        web.header('Content-Type', 'text/xml')
 
-    if not corpora.has_key(name):
-      return web.notfound()
+        if not corpora.has_key(name):
+            return web.notfound()
 
-    params = web.input()
-    try:
-      c = alpinocorpus.CorpusReader(corpora[name]['path'])
+        params = web.input()
+        try:
+            c = alpinocorpus.CorpusReader(corpora[name]['path'])
 
-      # Was there a request to mark entries?
-      if params.has_key('markerQuery') and params.has_key('markerAttr') and params.has_key('markerValue'):
-        queries = [alpinocorpus.MarkerQuery(params['markerQuery'].encode('utf-8'),
-          params['markerAttr'], params['markerValue'])]
-        data = c.readMarkQueries(entry, queries)
-      else:
-        data = c.read(entry)
+            # Was there a request to mark entries?
+            if params.has_key('markerQuery') and params.has_key('markerAttr') and params.has_key('markerValue'):
+                queries = [alpinocorpus.MarkerQuery(params['markerQuery'].encode('utf-8'),
+                    params['markerAttr'], params['markerValue'])]
+                data = c.readMarkQueries(entry, queries)
+            else:
+                data = c.read(entry)
 
-    except RuntimeError:
-      return web.notfound()
+        except RuntimeError:
+            return web.notfound()
 
-    return data
+        return data
 
 class QueryValidation:
-  def GET(self, name):
-    web.header('Content-Type', 'text/plain')
+    def GET(self, name):
+        web.header('Content-Type', 'text/plain')
 
-    if not corpora.has_key(name):
-      return web.notfound()
+        if not corpora.has_key(name):
+            return web.notfound()
 
-    params = web.input()
-    try:
-      c = alpinocorpus.CorpusReader(corpora[name]['path'])
+        params = web.input()
+        try:
+            c = alpinocorpus.CorpusReader(corpora[name]['path'])
 
-      # Was there a request to mark entries?
-      if params.has_key('query'):
-        query = params.get('query').encode('utf-8')
-        if c.validQuery(query):
-          return '1\n'
-        else:
-          return '0\n'
-      else:
-        return web.notfound()
+            # Was there a request to mark entries?
+            if params.has_key('query'):
+                query = params.get('query').encode('utf-8')
+                if c.validQuery(query):
+                    return '1\n'
+                else:
+                    return '0\n'
+            else:
+                return web.notfound()
 
-    except RuntimeError:
-      return web.notfound()
+        except RuntimeError:
+            return web.notfound()
 
 if __name__ == "__main__":
 
-  app.run()
+    app.run()
