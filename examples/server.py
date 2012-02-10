@@ -100,7 +100,6 @@ class Corpora:
         yield "%s\t%d\t%s\t%s\n" % (corpus, info['entries'],
                                     escapeSpecials(info['shortdesc']).encode('utf-8'), escapeSpecials(info['desc']).encode('utf-8'))
 
-
 class Entries:
   def GET(self, name, ext):
     if not corpora.has_key(name):
@@ -153,6 +152,9 @@ class Entries:
     except RuntimeError:
       yield web.internalerror()
 
+    if ext == '':
+      yield "\004"
+
   def POST(self, name, ext):
 
     if not corpora.has_key(name):
@@ -204,6 +206,9 @@ class Entries:
     except RuntimeError:
       yield web.internalerror()
 
+    if ext == '':
+      yield "\004"
+
 class Entry:
   def GET(self, name, entry):
     web.header('Content-Type', 'text/xml')
@@ -243,9 +248,9 @@ class QueryValidation:
       if params.has_key('query'):
         query = params.get('query').encode('utf-8')
         if c.validQuery(query):
-          return '1'
+          return '1\n'
         else:
-          return '0'
+          return '0\n'
       else:
         return web.notfound()
 
