@@ -116,7 +116,7 @@ class Entries:
             web.header('Content-Type', 'text/plain; charset=utf-8')
 
         try:
-            c = alpinocorpus.CorpusReader(corpora[name]['path'])
+            c = corpora[name]['reader']
 
             # Was a query provided?
             params = web.input()
@@ -171,7 +171,7 @@ class Entries:
             web.header('Content-Type', 'text/plain; charset=utf-8')
 
         try:
-            c = alpinocorpus.CorpusReader(corpora[name]['path'])
+            c = corpora[name]['reader']
 
             params = web.input()
 
@@ -220,7 +220,7 @@ class Entry:
 
         params = web.input()
         try:
-            c = alpinocorpus.CorpusReader(corpora[name]['path'])
+            c = corpora[name]['reader']
 
             # Was there a request to mark entries?
             if params.has_key('markerQuery') and params.has_key('markerAttr') and params.has_key('markerValue'):
@@ -244,7 +244,7 @@ class QueryValidation:
 
         params = web.input()
         try:
-            c = alpinocorpus.CorpusReader(corpora[name]['path'])
+            c = corpora[name]['reader']
 
             # Was there a request to mark entries?
             if params.has_key('query'):

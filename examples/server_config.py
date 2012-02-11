@@ -15,25 +15,26 @@ for corpus in ini.sections():
 
 removes = list()
 
-for name, info in corpora.iteritems():
+for name, corpusData in corpora.iteritems():
     try:
-        c = alpinocorpus.CorpusReader(info['path'])
-        info['entries'] = c.size()
+        c = alpinocorpus.CorpusReader(corpusData['path'])
+        corpusData['entries'] = c.size()
+        corpusData['reader'] = c
     except RuntimeError:
         removes.append(name)
         continue
     try:
-        size = os.stat(info['path']).st_size
+        size = os.stat(corpusData['path']).st_size
     except:
         size = 0
-    info['filesize'] = size
-    if not info.get('desc', ''):
-        info['desc'] = info.get('shortdesc', u'')
-    if not info.get('shortdesc', ''):
-        info['shortdesc'] = info.get('desc', u'')
-    i = info['shortdesc'].find(u'\n')
+    corpusData['filesize'] = size
+    if not corpusData.get('desc', ''):
+        corpusData['desc'] = corpusData.get('shortdesc', u'')
+    if not corpusData.get('shortdesc', ''):
+        corpusData['shortdesc'] = coprusData.get('desc', u'')
+    i = corpusData['shortdesc'].find(u'\n')
     if i > -1:
-        info['shortdesc'] = info['shortdesc'][:i]
+        corpusData['shortdesc'] = corpusData['shortdesc'][:i]
 
 for r in removes:
     print "Could not open %s, removing corpus" % r
