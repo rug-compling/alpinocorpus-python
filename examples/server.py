@@ -85,7 +85,7 @@ class Corpora:
             for corpus, info in corpora.iteritems():
                 c[corpus] = {}
                 for i in info:
-                    if i != "path":
+                    if i != "path" and i != "reader":
                         c[corpus][i] = info[i]
             yield json.dumps(c, sort_keys=True).replace('"}, "', '"},\n "')
             if ext == '.js':
