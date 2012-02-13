@@ -135,6 +135,8 @@ class Entries:
                 pre = 'var ac_entries = [ '
             else:
                 pre = '[ '
+            if ext == '':
+                yield "\002\n"
             for e in gen:
                 if contents:
                     if ext[:3] == '.js':
@@ -157,7 +159,7 @@ class Entries:
             yield web.internalerror()
 
         if ext == '':
-            yield "\004"
+            yield "\004\n"
 
     def POST(self, name, ext):
 
@@ -186,15 +188,17 @@ class Entries:
 
             # Was a query provided?
             if params.has_key('query'):
-                gen = c.queryWithStylesheet(params['query'].encode('utf-8'), web.data(), markerQueries, timeout)
+                gen = c.queryWithStylesheet(params['query'].encode('utf-8'), web.data(), markerQueries, _timeout)
             else:
-                gen = c.entriesWithStylesheet(web.data(), markerQueries, timeout)
+                gen = c.entriesWithStylesheet(web.data(), markerQueries, _timeout)
 
             # Stream (matching) entries
             if ext == '.js':
                 pre = 'var ac_entries = [ '
             else:
                 pre = '[ '
+            if ext == '':
+                yield "\002\n"
             for e in gen:
                 if ext[:3] == '.js':
                     yield  pre + json.dumps([e.name(), e.contents()])
@@ -211,7 +215,7 @@ class Entries:
             yield web.internalerror()
 
         if ext == '':
-            yield "\004"
+            yield "\004\n"
 
 class Entry:
     def GET(self, name, entry):
