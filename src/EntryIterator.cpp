@@ -4,6 +4,8 @@
 #include "CorpusReader.hh"
 #include "Entry.hh"
 #include "EntryIterator.hh"
+#include "boost_wrap.hh"
+
 
 namespace ac = alpinocorpus;
 
@@ -61,6 +63,11 @@ void EntryIterator_dealloc(EntryIterator *self)
   // reader, while the iterator could still hold resources.
   CorpusReader *reader = self->reader;
 
+  if (self->interruptThread != 0) {
+    interruptBoostThread(self->interruptThread);
+    deleteBoostThread(self->interruptThread);
+  }
+
   delete self->iter;
   self->ob_type->tp_free(self);
 
@@ -81,6 +88,10 @@ PyObject *EntryIterator_iternext(PyObject *self)
   Py_BEGIN_ALLOW_THREADS
   try {
     notAtEnd = *entryIterator->iter != entryIterator->reader->reader->end();
+  } catch (ac::IterationInterrupted &e) {
+    Py_BLOCK_THREADS
+    PyErr_SetNone(PyExc_StopIteration);
+    return NULL;
   } catch (std::runtime_error &e) {
     Py_BLOCK_THREADS
     raise_exception(e.what());
@@ -97,6 +108,7 @@ PyObject *EntryIterator_iternext(PyObject *self)
     } catch (ac::IterationInterrupted &e) {
       Py_BLOCK_THREADS
       // XXX - throw a specific exception here
+      Entry_dealloc(reinterpret_cast<Entry *>(entry));
       PyErr_SetNone(PyExc_StopIteration);
       return NULL;
     } catch (std::runtime_error &e) {

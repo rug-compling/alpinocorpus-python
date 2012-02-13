@@ -10,6 +10,7 @@
 #include "CorpusReader.hh"
 #include "EntryIterator.hh"
 #include "MarkerQuery.hh"
+#include "boost_wrap.hh"
 
 static PyMethodDef CorpusReader_methods[] = {
   {"entries", (PyCFunction) CorpusReader_entries, METH_NOARGS, "Entries" },
@@ -83,6 +84,16 @@ std::list<alpinocorpus::CorpusReader::MarkerQuery> parseMarkerQueries(PyObject *
   }
 
   return markerQueries;
+}
+
+void prepareTimeout(EntryIterator *iter, int timeout)
+{
+  if (timeout != -1) {
+    InterruptIter interruptFun(iter, timeout);
+    iter->interruptThread = createBoostThread(interruptFun);
+  }
+  else
+    iter->interruptThread = 0;
 }
 
 PyObject *CorpusReader_new(PyTypeObject *type, PyObject *args,
@@ -179,7 +190,9 @@ PyObject *CorpusReader_entriesWithStylesheet(CorpusReader *self, PyObject *args)
 {
   char *stylesheet;
   PyObject *markerList;
-  if (!PyArg_ParseTuple(args, "sO!", &stylesheet, &PyList_Type, &markerList))
+  int timeout = -1;
+  if (!PyArg_ParseTuple(args, "sO!|i", &stylesheet, &PyList_Type, &markerList,
+        &timeout))
     return NULL;
 
   std::list<alpinocorpus::CorpusReader::MarkerQuery> markerQueries = parseMarkerQueries(markerList);
@@ -201,13 +214,16 @@ PyObject *CorpusReader_entriesWithStylesheet(CorpusReader *self, PyObject *args)
     return NULL;
   }
 
+  prepareTimeout(iter, timeout);
+
   return (PyObject *) iter;
 }
 
 PyObject *CorpusReader_query(CorpusReader *self, PyObject *args)
 {
   char *query;
-  if (!PyArg_ParseTuple(args, "s", &query))
+  int timeout = -1;
+  if (!PyArg_ParseTuple(args, "s|i", &query, &timeout))
     return NULL;
 
   EntryIterator *iter;
@@ -226,6 +242,8 @@ PyObject *CorpusReader_query(CorpusReader *self, PyObject *args)
     return NULL;
   }
 
+  prepareTimeout(iter, timeout);
+
   return (PyObject *) iter;
 }
 
@@ -233,7 +251,9 @@ PyObject *CorpusReader_queryWithStylesheet(CorpusReader *self, PyObject *args)
 {
   char *query, *stylesheet;
   PyObject *markerList;
-  if (!PyArg_ParseTuple(args, "ssO!", &query, &stylesheet, &PyList_Type, &markerList))
+  int timeout = -1;
+  if (!PyArg_ParseTuple(args, "ssO!|i", &query, &stylesheet, &PyList_Type,
+        &markerList, &timeout))
     return NULL;
 
   std::list<alpinocorpus::CorpusReader::MarkerQuery> markerQueries = parseMarkerQueries(markerList);
@@ -254,6 +274,8 @@ PyObject *CorpusReader_queryWithStylesheet(CorpusReader *self, PyObject *args)
     raise_exception(e.what());
     return NULL;
   }
+
+  prepareTimeout(iter, timeout);
 
   return (PyObject *) iter;
 }

@@ -33,6 +33,8 @@ import alpinocorpus
 
 from server_config import corpora
 
+_timeout = 20
+
 urls = (
     '/corpora(|\\.js|\\.json|\\.xml)', 'Corpora',
     '/([^/]*)/entries(|\\.js|\\.json)/?', 'Entries',
@@ -122,7 +124,7 @@ class Entries:
             params = web.input()
             contents = False
             if params.has_key('query'):
-                gen = c.query(params['query'].encode('utf-8'))
+                gen = c.query(params['query'].encode('utf-8'), _timeout)
                 if params.get('contents', '') == '1':
                     contents = True
             else:
@@ -184,9 +186,9 @@ class Entries:
 
             # Was a query provided?
             if params.has_key('query'):
-                gen = c.queryWithStylesheet(params['query'].encode('utf-8'), web.data(), markerQueries)
+                gen = c.queryWithStylesheet(params['query'].encode('utf-8'), web.data(), markerQueries, timeout)
             else:
-                gen = c.entriesWithStylesheet(web.data(), markerQueries)
+                gen = c.entriesWithStylesheet(web.data(), markerQueries, timeout)
 
             # Stream (matching) entries
             if ext == '.js':
