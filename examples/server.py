@@ -119,8 +119,10 @@ class Entries:
         try:
             c = corpora[name]['reader']
 
-            # Was a query provided?
             params = web.input()
+            offset = int(params.get('start', '0'))
+
+            # Was a query provided?
             contents = False
             if params.has_key('query'):
                 gen = c.query(params['query'].encode('utf-8'))
@@ -135,6 +137,9 @@ class Entries:
             else:
                 pre = '[ '
             for e in gen:
+                if offset:
+                    offset -= 1
+                    continue
                 if contents:
                     if ext[:3] == '.js':
                         yield  pre + json.dumps([e.name(), escapeSpecials(e.contents())])
@@ -156,7 +161,7 @@ class Entries:
             yield web.internalerror()
 
         if ext == '':
-            yield "\004"
+            yield "\004\n"
 
     def POST(self, name, ext):
 
@@ -176,6 +181,7 @@ class Entries:
             c = corpora[name]['reader']
 
             params = web.input()
+            offset = int(params.get('start', '0'))
 
             # Do we want to highlight something?
             if params.has_key('markerQuery') and params.has_key('markerAttr') and params.has_key('markerValue'):
@@ -196,6 +202,9 @@ class Entries:
             else:
                 pre = '[ '
             for e in gen:
+                if offset:
+                    offset -= 1
+                    continue
                 if ext[:3] == '.js':
                     yield  pre + json.dumps([e.name(), e.contents()])
                 else:
@@ -211,7 +220,7 @@ class Entries:
             yield web.internalerror()
 
         if ext == '':
-            yield "\004"
+            yield "\004\n"
 
 class Entry:
     def GET(self, name, entry):
