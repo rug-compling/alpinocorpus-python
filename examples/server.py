@@ -49,7 +49,7 @@ def escapeSpecials(txt):
     return txt.replace('\\', '\\\\').replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t')
 
 def escapeXML(txt):
-    return txt.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").encode("ascii", "xmlcharrefreplace")
+    return txt.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').encode('ascii', 'xmlcharrefreplace')
 
 class Corpora:
     def GET(self, ext):
@@ -58,18 +58,18 @@ class Corpora:
 
             web.header('Content-Type', 'text/xml')
 
-            yield "<corpusarchive>\n"
+            yield '<corpusarchive>\n'
             for corpus in sorted(corpora):
                 info = corpora[corpus]
-                yield """<corpus>
+                yield '''<corpus>
                     <filename>%s</filename>
                     <filesize>%d</filesize>
                     <sentences>%d</sentences>
                     <shortdesc>%s</shortdesc>
                     <desc>%s</desc>
                 </corpus>
-""" % (corpus, info['filesize'], info['entries'], escapeXML(info['shortdesc']), escapeXML(info['desc']))
-            yield "</corpusarchive>\n"
+''' % (corpus, info['filesize'], info['entries'], escapeXML(info['shortdesc']), escapeXML(info['desc']))
+            yield '</corpusarchive>\n'
 
         elif ext == '.js' or ext == '.json':
 
@@ -80,18 +80,18 @@ class Corpora:
             web.header('Content-Type', 'application/%s' % mst)
 
             if ext == '.js':
-                yield "var ac_corpora = "
+                yield 'var ac_corpora = '
             c = {}
             for corpus, info in corpora.iteritems():
                 c[corpus] = {}
                 for i in info:
-                    if i != "path" and i != "reader":
+                    if i != 'path' and i != 'reader':
                         c[corpus][i] = info[i]
             yield json.dumps(c, sort_keys=True).replace('"}, "', '"},\n "')
             if ext == '.js':
-                yield ";\n"
+                yield ';\n'
             else:
-                yield "\n"
+                yield '\n'
 
         else:
 
@@ -99,7 +99,7 @@ class Corpora:
 
             for corpus in sorted(corpora):
                 info = corpora[corpus]
-                yield "%s\t%d\t%s\t%s\n" % (corpus,
+                yield '%s\t%d\t%s\t%s\n' % (corpus,
                                             info['entries'],
                                             escapeSpecials(info['shortdesc']).encode('utf-8'),
                                             escapeSpecials(info['desc']).encode('utf-8'))
@@ -110,49 +110,47 @@ class Entries:
 
         if ext == '.js':
             web.header('Content-Type', 'application/javascript')
-            yield 'var ac_entries = [ '
+            yield 'var ac_data = {"entries": ['
         if ext == '.json':
             web.header('Content-Type', 'application/json')
-            yield '[ '
+            yield '{"entries": ['
         else:
             web.header('Content-Type', 'text/plain; charset=utf-8')
-            yield "\002\n"
+            yield '\002\n'
 
         pre = ''
+        timeout = False
         while True:
             try:
                 e = gen.next()
             except StopIteration:
                 break
             except:
-                if ext[:3] == '.js':
-                    yield pre + '"[ Timeout ]"'
-                    pre = ",\n  "
-                    break
-                else:
-                    yield "[ Timeout ]\n"
-                    break
+                timeout = True
+                break
             if offset:
                 offset -= 1
                 continue
             if contents:
                 if ext[:3] == '.js':
-                    yield  pre + json.dumps([e.name(), escapeSpecials(e.contents())])
+                    yield  pre + '\n    ' + json.dumps([e.name(), escapeSpecials(e.contents())])
                 else:
-                    yield "%s\t%s\n" % (e.name(), escapeSpecials(e.contents()))
+                    yield '%s\t%s\n' % (e.name(), escapeSpecials(e.contents()))
             else:
                 if ext[:3] == '.js':
-                    yield pre + json.dumps(e.name())
+                    yield pre + '\n    ' + json.dumps(e.name())
                 else:
-                    yield "%s\n" % e.name()
-            pre = ",\n  "
-        if ext == '.json':
-            yield "\n]\n"
-        elif ext == '.js':
-            yield '\n];\n'
+                    yield '%s\n' % e.name()
+            pre = ','
 
-        if ext == '':
-            yield "\004\n"
+        if ext == '.json':
+            yield '\n  ],\n "timeout": %s\n}\n' % str(timeout).lower()
+        elif ext == '.js':
+            yield '\n  ],\n "timeout": %s\n};\n' % str(timeout).lower()
+        else:
+            if timeout:
+                yield '[ Timeout ]\n'
+            yield '\004\n'
 
     def GET(self, name, ext):
         if not corpora.has_key(name):
@@ -260,6 +258,6 @@ class QueryValidation:
         except RuntimeError:
             return web.notfound()
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 
     app.run()
