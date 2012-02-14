@@ -27,7 +27,7 @@
 # * markerAttr  : marker attribute
 # * markerValue : marker value
 
-import json, web
+import json, web, sys
 
 import alpinocorpus
 
@@ -105,17 +105,59 @@ class Corpora:
                                             escapeSpecials(info['desc']).encode('utf-8'))
 
 class Entries:
-    def GET(self, name, ext):
-        if not corpora.has_key(name):
-            yield web.notfound()
-            return # ??
+
+    def run(self, gen, ext, contents, offset):
 
         if ext == '.js':
             web.header('Content-Type', 'application/javascript')
+            yield 'var ac_entries = [ '
         if ext == '.json':
             web.header('Content-Type', 'application/json')
+            yield '[ '
         else:
             web.header('Content-Type', 'text/plain; charset=utf-8')
+            yield "\002\n"
+
+        pre = ''
+        while True:
+            try:
+                e = gen.next()
+            except StopIteration:
+                break
+            except:
+                if ext[:3] == '.js':
+                    yield pre + '"[ Timeout ]"'
+                    pre = ",\n  "
+                    break
+                else:
+                    yield "[ Timeout ]\n"
+                    break
+            if offset:
+                offset -= 1
+                continue
+            if contents:
+                if ext[:3] == '.js':
+                    yield  pre + json.dumps([e.name(), escapeSpecials(e.contents())])
+                else:
+                    yield "%s\t%s\n" % (e.name(), escapeSpecials(e.contents()))
+            else:
+                if ext[:3] == '.js':
+                    yield pre + json.dumps(e.name())
+                else:
+                    yield "%s\n" % e.name()
+            pre = ",\n  "
+        if ext == '.json':
+            yield "\n]\n"
+        elif ext == '.js':
+            yield '\n];\n'
+
+        if ext == '':
+            yield "\004\n"
+
+    def GET(self, name, ext):
+        if not corpora.has_key(name):
+            yield web.notfound()
+            return
 
         try:
             c = corpora[name]['reader']
@@ -132,52 +174,17 @@ class Entries:
             else:
                 gen = c.entries()
 
-            # Stream (matching) entries
-            if ext == '.js':
-                pre = 'var ac_entries = [ '
-            else:
-                pre = '[ '
-            if ext == '':
-                yield "\002\n"
-            for e in gen:
-                if offset:
-                    offset -= 1
-                    continue
-                if contents:
-                    if ext[:3] == '.js':
-                        yield  pre + json.dumps([e.name(), escapeSpecials(e.contents())])
-                    else:
-                        yield "%s\t%s\n" % (e.name(), escapeSpecials(e.contents()))
-                else:
-                    if ext[:3] == '.js':
-                        yield pre + json.dumps(e.name())
-                    else:
-                        yield "%s\n" % e.name()
-                pre = ",\n  "
-            if pre == ",\n  ":
-                if ext == '.json':
-                    yield " ]\n"
-                elif ext == '.js':
-                    yield ' ];\n'
+            for i in self.run(gen, ext, contents, offset):
+                yield i
 
-        except RuntimeError:
+        except:
+            print sys.exc_info()
             yield web.internalerror()
 
-        if ext == '':
-            yield "\004\n"
-
     def POST(self, name, ext):
-
         if not corpora.has_key(name):
             yield web.notfound()
-            return # ??
-
-        if ext == '.js':
-            web.header('Content-Type', 'application/javascript')
-        if ext == '.json':
-            web.header('Content-Type', 'application/json')
-        else:
-            web.header('Content-Type', 'text/plain; charset=utf-8')
+            return
 
         try:
             c = corpora[name]['reader']
@@ -198,33 +205,12 @@ class Entries:
             else:
                 gen = c.entriesWithStylesheet(web.data(), markerQueries, _timeout)
 
-            # Stream (matching) entries
-            if ext == '.js':
-                pre = 'var ac_entries = [ '
-            else:
-                pre = '[ '
-            if ext == '':
-                yield "\002\n"
-            for e in gen:
-                if offset:
-                    offset -= 1
-                    continue
-                if ext[:3] == '.js':
-                    yield  pre + json.dumps([e.name(), e.contents()])
-                else:
-                    yield "%s\t%s\n" % (e.name(), escapeSpecials(e.contents()))
-                pre = ",\n  "
-            if pre == ",\n  ":
-                if ext == '.json':
-                    yield " ]\n"
-                elif ext == '.js':
-                    yield ' ];\n'
+            for i in self.run(gen, ext, True, offset):
+                yield i
 
-        except RuntimeError:
+        except:
+            print sys.exc_info()
             yield web.internalerror()
-
-        if ext == '':
-            yield "\004\n"
 
 class Entry:
     def GET(self, name, entry):

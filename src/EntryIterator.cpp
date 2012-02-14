@@ -90,7 +90,7 @@ PyObject *EntryIterator_iternext(PyObject *self)
     notAtEnd = *entryIterator->iter != entryIterator->reader->reader->end();
   } catch (ac::IterationInterrupted &e) {
     Py_BLOCK_THREADS
-    PyErr_SetNone(PyExc_StopIteration);
+    PyErr_SetNone(PyExc_GeneratorExit);
     return NULL;
   } catch (std::runtime_error &e) {
     Py_BLOCK_THREADS
@@ -109,7 +109,7 @@ PyObject *EntryIterator_iternext(PyObject *self)
       Py_BLOCK_THREADS
       // XXX - throw a specific exception here
       Entry_dealloc(reinterpret_cast<Entry *>(entry));
-      PyErr_SetNone(PyExc_StopIteration);
+      PyErr_SetNone(PyExc_GeneratorExit);
       return NULL;
     } catch (std::runtime_error &e) {
       Py_BLOCK_THREADS
