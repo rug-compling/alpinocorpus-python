@@ -149,7 +149,7 @@ class Entries:
             yield '\n  ],\n "timeout": %s\n};\n' % str(timeout).lower()
         else:
             if timeout:
-                yield '[ Timeout ]\n'
+                yield '\033Time-out\n'
             yield '\004\n'
 
     def GET(self, name, ext):
