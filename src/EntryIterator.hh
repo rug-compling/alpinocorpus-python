@@ -7,6 +7,10 @@
 
 #include "CorpusReader.hh"
 
+namespace boost {
+  class thread;
+}
+
 struct EntryIterator {
   PyObject_HEAD
   CorpusReader *reader;
@@ -16,6 +20,7 @@ struct EntryIterator {
   // destructor. By managing the memory ourselves, we can use the delete
   // operator.
   alpinocorpus::CorpusReader::EntryIterator *iter;
+  boost::thread *interruptThread;
 };
 
 extern PyTypeObject EntryIteratorType;
