@@ -17,6 +17,7 @@ if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
 endif()
 
+set(Boost_USE_MULTITHREADED ON)
 
 find_package(LibXml2 REQUIRED)
 if(LIBXML2_FOUND)
