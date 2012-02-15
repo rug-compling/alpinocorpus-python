@@ -12,6 +12,10 @@ if(PYTHONLIBS_FOUND)
   include_directories(${PYTHON_INCLUDE_DIRS})
 endif()
 
+if(BOOST_ROOT)
+  set(Boost_NO_SYSTEM_PATHS ON)
+endif()
+
 find_package(Boost 1.46.1 COMPONENTS thread REQUIRED)
 if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
