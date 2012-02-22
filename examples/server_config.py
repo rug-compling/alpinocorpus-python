@@ -25,7 +25,13 @@ for name, corpusData in corpora.iteritems():
         removes.append(name)
         continue
     try:
-        size = os.stat(corpusData['path']).st_size
+        if corpusData['path'].endswith('/'):
+            size = 0
+            for filename in os.listdir(corpusData['path']):
+                if filename.endswith('.dact'):
+                    size += os.stat(corpusData['path'] + filename).st_size
+        else:
+            size = os.stat(corpusData['path']).st_size
     except:
         size = 0
     corpusData['filesize'] = size
