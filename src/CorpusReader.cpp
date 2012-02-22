@@ -1,5 +1,6 @@
 #include <stdexcept>
 #include <string>
+#include <cstring>
 
 #include <Python.h>
 
@@ -106,8 +107,12 @@ PyObject *CorpusReader_new(PyTypeObject *type, PyObject *args,
   CorpusReader *self;
   self = (CorpusReader *) type->tp_alloc(type, 0);
   try {
-    if (self != NULL)
-      self->reader = alpinocorpus::CorpusReaderFactory::open(path);
+    if (self != NULL) {
+      if (path[strlen(path) - 1] == '/')
+	self->reader = alpinocorpus::CorpusReaderFactory::openRecursive(path);
+      else
+	self->reader = alpinocorpus::CorpusReaderFactory::open(path);
+    }
   } catch (std::runtime_error &e) {
     raise_exception(e.what());
     return NULL;

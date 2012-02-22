@@ -16,6 +16,7 @@ for corpus in ini.sections():
 removes = list()
 
 for name, corpusData in corpora.iteritems():
+    print "Opening", corpusData['path']
     try:
         c = alpinocorpus.CorpusReader(corpusData['path'])
         corpusData['entries'] = c.size()

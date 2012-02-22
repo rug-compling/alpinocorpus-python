@@ -28,3 +28,9 @@ path: %(pre)s/wikipedia-selection.dact
 shortdesc: Dutch Wikipedia sample
 desc: Random sample of 100,000 sentences from the Dutch Wikipedia
 
+[wikipedia-large]
+# a path ending with a slash indicates a directory with multiple dact files
+path: %(pre)s/wikipedia/
+shortdesc: Dutch Wikipedia
+desc: Large sample from the Dutch Wikipedia
+
