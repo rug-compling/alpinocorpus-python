@@ -1,3 +1,4 @@
+#include "alpinocorpus.h"
 #include "MarkerQuery.hh"
 
 static PyMethodDef MarkerQuery_methods[] = {
@@ -5,8 +6,7 @@ static PyMethodDef MarkerQuery_methods[] = {
 };
 
 PyTypeObject MarkerQueryType = {
-            PyObject_HEAD_INIT(NULL)
-            0,                                        /* ob_size */
+            PyVarObject_HEAD_INIT(NULL, 0)
             "alpinocorpus.MarkerQuery",               /* tp_name */
             sizeof(MarkerQuery),                      /* tp_basicsize */
             0,                                        /* tp_itemsize */
@@ -71,5 +71,5 @@ void MarkerQuery_dealloc(MarkerQuery *self)
   delete self->attr;
   delete self->value;
 
-  self->ob_type->tp_free(self);
+  OB_TYPE(self)->tp_free(self);
 }

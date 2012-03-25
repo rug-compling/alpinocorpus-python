@@ -15,8 +15,7 @@ static PyMethodDef Entry_methods[] = {
 };
 
 PyTypeObject EntryType = {
-            PyObject_HEAD_INIT(NULL)
-            0,                                        /* ob_size */
+            PyVarObject_HEAD_INIT(NULL, 0)
             "alpinocorpus.Entry",                     /* tp_name */
             sizeof(Entry),                            /* tp_basicsize */
             0,                                        /* tp_itemsize */
@@ -101,7 +100,7 @@ void Entry_dealloc(Entry *self)
   Py_DECREF(self->name);
   Py_DECREF(self->contents);
 
-  self->ob_type->tp_free(self);
+  OB_TYPE(self)->tp_free(self);
 }
 
 PyObject *Entry_contents(Entry *self)

@@ -27,8 +27,7 @@ static PyMethodDef CorpusReader_methods[] = {
 };
 
 PyTypeObject CorpusReaderType = {
-            PyObject_HEAD_INIT(NULL)
-            0,                                        /* ob_size */
+            PyVarObject_HEAD_INIT(NULL, 0)
             "alpinocorpus.CorpusReader",              /* tp_name */
             sizeof(CorpusReader),                     /* tp_basicsize */
             0,                                        /* tp_itemsize */
@@ -124,7 +123,7 @@ PyObject *CorpusReader_new(PyTypeObject *type, PyObject *args,
 void CorpusReader_dealloc(CorpusReader *self)
 {
   delete self->reader;
-  self->ob_type->tp_free(self);
+  OB_TYPE(self)->tp_free(self);
 }
 
 PyObject *CorpusReader_read(CorpusReader *self, PyObject *args)

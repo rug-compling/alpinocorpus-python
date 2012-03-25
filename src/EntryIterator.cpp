@@ -14,8 +14,7 @@ static PyMethodDef EntryIterator_methods[] = {
 };
 
 PyTypeObject EntryIteratorType = {
-            PyObject_HEAD_INIT(NULL)
-            0,                                        /* ob_size */
+            PyVarObject_HEAD_INIT(NULL, 0)
             "alpinocorpus.EntryIterator",             /* tp_name */
             sizeof(EntryIterator),                    /* tp_basicsize */
             0,                                        /* tp_itemsize */
@@ -69,7 +68,7 @@ void EntryIterator_dealloc(EntryIterator *self)
   }
 
   delete self->iter;
-  self->ob_type->tp_free(self);
+  OB_TYPE(self)->tp_free(self);
 
   Py_DECREF(reader);
 }

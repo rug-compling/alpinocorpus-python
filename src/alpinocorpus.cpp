@@ -1,5 +1,6 @@
 #include <Python.h>
 
+#include "alpinocorpus.h"
 #include "CorpusReader.hh"
 #include "Entry.hh"
 #include "EntryIterator.hh"
@@ -30,27 +31,51 @@ void cleanup()
   xmlCleanupParser();
 }
 
+#if PY_MAJOR_VERSION >= 3
+
+static struct PyModuleDef moduledef = {
+  PyModuleDef_HEAD_INIT,
+  "alpinocorpus",
+  NULL,
+  0,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL
+};
+#endif
+
+#if PY_MAJOR_VERSION >= 3
+PyMODINIT_FUNC PyInit_alpinocorpus(void)
+#else
 PyMODINIT_FUNC initalpinocorpus(void)
+#endif
 {
   static int initialized = 0;
 
   PyObject *m;
 
   if (PyType_Ready(&CorpusReaderType) < 0)
-    return;
+    MODULE_RETURN(Py_None)
   if (PyType_Ready(&EntryIteratorType) < 0)
-    return;
+    MODULE_RETURN(Py_None)
   if (PyType_Ready(&EntryType) < 0)
-    return;
+    MODULE_RETURN(Py_None)
   if (PyType_Ready(&MarkerQueryType) < 0)
-    return;
-
+    MODULE_RETURN(Py_None)
   if (initialized != 0)
-    return;
-  
+    MODULE_RETURN(Py_None)
+
+#if PY_MAJOR_VERSION >= 3
+  m = PyModule_Create(&moduledef);
+  if (m == NULL)
+    return Py_None;
+#else
   m = Py_InitModule("alpinocorpus", AlpinoCorpusMethods);
   if (m == NULL)
     return;
+#endif
   
   initialized = 1;
 
@@ -68,5 +93,9 @@ PyMODINIT_FUNC initalpinocorpus(void)
   PyModule_AddObject(m, "EntryIterator", (PyObject *) &EntryIteratorType);
   PyModule_AddObject(m, "Entry", (PyObject *) &EntryType);
   PyModule_AddObject(m, "MarkerQuery", (PyObject *) &MarkerQueryType);
+
+#if PY_MAJOR_VERSION >= 3
+  return m;
+#endif
 }
 
