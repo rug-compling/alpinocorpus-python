@@ -1,6 +1,7 @@
 # alpinocorpus-python
 
-This module provides Python 2.x bindings for the alpinocorpus library.
+This module provides Python bindings for the alpinocorpus library. The
+bindings work for Python 2.x and 3.x.
 
 ## Compilation
 
