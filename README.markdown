@@ -17,33 +17,33 @@ python setup.py install
 
 The Python binding for alpinocorpus can be loaded with a simple import:
 
-  import alpinocorpus
+    import alpinocorpus
 
 The *CorpusReader* class is used to read and query corpora. A corpus
 is opened using the constructor of *CorpusReader*:
 
-  c = CorpusReader("mycorpus.dact")
+    c = CorpusReader("mycorpus.dact")
 
 A query can be executed using the *query* method:
 
-  q = c.query("//node[@root='loop']")
+    q = c.query("//node[@root='loop']")
 
 The resulting query object is iterable, and can be used to print the
 name or contents of a match:
 
-  for entry in q:
-    print(q.name())
-    print(q.contents())
+    for entry in q:
+      print(q.name())
+      print(q.contents())
 
 An entry can be read from the corpus using the *read* method of
 *CorpusReader*:
 
-  c.read("1.xml")
+    c.read("1.xml")
 
 Or if you want to read, while marking nodes that are selected using a
 query:
 
-  c.readMarkQueries("1.xml", [alpinocorpus.MarkerQuery(query, "active", "1")]
+    c.readMarkQueries("1.xml", [alpinocorpus.MarkerQuery(query, "active", "1")]
 
 ## Server
 
