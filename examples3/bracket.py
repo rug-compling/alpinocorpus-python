@@ -10,9 +10,6 @@ class Transformer:
     self.doc = etree.parse(stylesheet)
     self.style = etree.XSLT(self.doc)
 
-  def close(self):
-    pass
-
   def transform(self, data):
     doc = etree.XML(data.encode("utf-8"))
     result = self.style(doc)
@@ -24,8 +21,6 @@ def matchAndPrint(stylesheet, reader, query):
   markerQueries = [alpinocorpus.MarkerQuery(query, "active", "1")]
   for entry in reader.query(query):
     print(trans.transform(reader.readMarkQueries(entry.name(), markerQueries)))
-
-  trans.close()
 
 if __name__ == "__main__":
   if (len(sys.argv) != 3):
