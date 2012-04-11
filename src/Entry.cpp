@@ -105,10 +105,12 @@ void Entry_dealloc(Entry *self)
 
 PyObject *Entry_contents(Entry *self)
 {
+  Py_INCREF(self->contents);
   return self->contents;
 }
 
 PyObject *Entry_name(Entry *self)
 {
+  Py_INCREF(self->name);
   return self->name;
 }
