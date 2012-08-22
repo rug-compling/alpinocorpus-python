@@ -3,6 +3,8 @@
 
 #include <Python.h>
 
+#include <AlpinoCorpus/Entry.hh>
+
 #include "EntryIterator.hh"
 
 // This object is what iteration over entries yields. We need to hold
@@ -16,7 +18,7 @@ struct Entry {
 
 extern PyTypeObject EntryType;
 
-PyObject *Entry_new(EntryIterator *iter);
+PyObject *Entry_new(alpinocorpus::Entry const &entry);
 void Entry_dealloc(Entry *self);
 PyObject *Entry_contents(Entry *self);
 PyObject *Entry_name(Entry *self);

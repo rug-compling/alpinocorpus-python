@@ -177,7 +177,7 @@ PyObject *CorpusReader_entries(CorpusReader *self)
   try {
     if (iter != NULL) {
       iter->reader = self;
-      iter->iter = new alpinocorpus::CorpusReader::EntryIterator(self->reader->begin());
+      iter->iter = new alpinocorpus::CorpusReader::EntryIterator(self->reader->entries());
 
       // Ensure the reader is not deallocated, since we need it.
       Py_INCREF(iter->reader);
@@ -208,7 +208,7 @@ PyObject *CorpusReader_entriesWithStylesheet(CorpusReader *self, PyObject *args)
     if (iter != NULL) {
       iter->reader = self;
       iter->iter = new alpinocorpus::CorpusReader::EntryIterator(
-        self->reader->beginWithStylesheet(stylesheet, markerQueries));
+        self->reader->entriesWithStylesheet(stylesheet, markerQueries));
 
       // Ensure the reader is not deallocated, since we need it.
       Py_INCREF(iter->reader);

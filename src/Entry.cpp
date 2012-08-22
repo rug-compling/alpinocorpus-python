@@ -4,9 +4,12 @@
 #include <Python.h>
 
 #include <AlpinoCorpus/CorpusReader.hh>
+#include <AlpinoCorpus/Entry.hh>
 
 #include "alpinocorpus.h"
 #include "Entry.hh"
+
+namespace ac = alpinocorpus;
 
 static PyMethodDef Entry_methods[] = {
   {"name",     (PyCFunction) Entry_name,     METH_NOARGS, "Entry name" },
@@ -55,44 +58,21 @@ PyTypeObject EntryType = {
             0,                                        /* tp_new */
         };
 
-PyObject *Entry_new(EntryIterator *iter)
+PyObject *Entry_new(ac::Entry const &entry)
 {
-  Entry *entry = reinterpret_cast<Entry *>(EntryType.tp_alloc(&EntryType, 0));
+  Entry *pyEntry = reinterpret_cast<Entry *>(EntryType.tp_alloc(&EntryType, 0));
 
-  if (entry != NULL) {
-    std::string name;
-    Py_BEGIN_ALLOW_THREADS
-    try {
-        name = **iter->iter;
-    } catch (std::runtime_error &e) {
-        Py_BLOCK_THREADS
-        raise_exception(e.what());
-        return NULL;
-    }
-    Py_END_ALLOW_THREADS
+  pyEntry->name = Py_BuildValue("s#", entry.name.c_str(), entry.name.size());
+  Py_INCREF(pyEntry->name);
 
-    entry->name = Py_BuildValue("s#", name.c_str(), name.size());
-    Py_INCREF(entry->name);
+  // It's a shame that we have to copy the contents, but EntryIterators
+  // are input iterators. So, we cannot keep an iterator pointed at a
+  // previous entry to retrieve the contents at any time.
+  pyEntry->contents = Py_BuildValue("s#", entry.contents.c_str(),
+      entry.contents.size());
+  Py_INCREF(pyEntry->contents);
 
-    // It's a shame that we have to copy the contents, but EntryIterators
-    // are input iterators. So, we cannot keep an iterator pointed at a
-    // previous entry to retrieve the contents at any time.
-    std::string contents;
-    Py_BEGIN_ALLOW_THREADS
-    try {
-        contents = iter->iter->contents(*iter->reader->reader);
-    } catch (std::runtime_error &e) {
-        Py_BLOCK_THREADS
-        raise_exception(e.what());
-        return NULL;
-    }
-    Py_END_ALLOW_THREADS
-
-    entry->contents = Py_BuildValue("s#", contents.c_str(), contents.size());
-    Py_INCREF(entry->contents);
-  }
-
-  return reinterpret_cast<PyObject *>(entry);
+  return reinterpret_cast<PyObject *>(pyEntry);
 }
 
 void Entry_dealloc(Entry *self)

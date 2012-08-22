@@ -1,3 +1,4 @@
+#include <AlpinoCorpus/Entry.hh>
 #include <AlpinoCorpus/Error.hh>
 
 #include "alpinocorpus.h"
@@ -86,7 +87,7 @@ PyObject *EntryIterator_iternext(PyObject *self)
   bool notAtEnd;
   Py_BEGIN_ALLOW_THREADS
   try {
-    notAtEnd = *entryIterator->iter != entryIterator->reader->reader->end();
+    notAtEnd = entryIterator->iter->hasNext();
   } catch (ac::IterationInterrupted &e) {
     Py_BLOCK_THREADS
     PyErr_SetNone(PyExc_GeneratorExit);
@@ -99,15 +100,14 @@ PyObject *EntryIterator_iternext(PyObject *self)
   Py_END_ALLOW_THREADS
 
   if (notAtEnd) {
-    PyObject *entry = Entry_new(entryIterator);
+    ac::Entry e;
 
     Py_BEGIN_ALLOW_THREADS
     try {
-      ++(*entryIterator->iter);
+      e = entryIterator->iter->next(*entryIterator->reader->reader);
     } catch (ac::IterationInterrupted &e) {
       Py_BLOCK_THREADS
       // XXX - throw a specific exception here
-      Entry_dealloc(reinterpret_cast<Entry *>(entry));
       PyErr_SetNone(PyExc_GeneratorExit);
       return NULL;
     } catch (std::runtime_error &e) {
@@ -116,6 +116,8 @@ PyObject *EntryIterator_iternext(PyObject *self)
       return NULL;
     }
     Py_END_ALLOW_THREADS
+
+    PyObject *entry = Entry_new(e);
 
     return entry;
   } else {

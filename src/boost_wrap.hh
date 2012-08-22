@@ -11,7 +11,7 @@ namespace boost {
   class thread;
 }
 
-class InterruptIter;
+struct InterruptIter;
 
 void sleepBoostThread(int timeout);
 boost::thread *createBoostThread(InterruptIter const &callable);
