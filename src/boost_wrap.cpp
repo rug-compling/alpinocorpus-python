@@ -1,3 +1,4 @@
+#include <boost/version.hpp>
 #include <boost/thread/xtime.hpp>
 #include <boost/thread/thread.hpp>
 
@@ -22,7 +23,11 @@ void deleteBoostThread(boost::thread *thread)
 void sleepBoostThread(int timeout)
 {
   boost::xtime xt;
+#if BOOST_VERSION < 105000
   boost::xtime_get(&xt, boost::TIME_UTC);
+#else
+  boost::xtime_get(&xt, boost::TIME_UTC_);
+#endif
   xt.sec += timeout;
 
   boost::thread::sleep(xt);
