@@ -309,8 +309,9 @@ PyObject *CorpusReader_validQuery(CorpusReader *self, PyObject *args)
   bool valid;
   Py_BEGIN_ALLOW_THREADS
   try {
-    valid = self->reader->isValidQuery(alpinocorpus::CorpusReader::XPATH, false,
+    alpinocorpus::Either<std::string, alpinocorpus::Empty> r = self->reader->isValidQuery(alpinocorpus::CorpusReader::XPATH, false,
         query);
+    valid = r.isRight();
   } catch (std::runtime_error &e) {
       Py_BLOCK_THREADS
       raise_exception(e.what());
