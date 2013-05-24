@@ -3,6 +3,8 @@
 This module provides Python bindings for the alpinocorpus library. The
 bindings work for Python 2.x and 3.x.
 
+Bugs/questions? Please send them to Daniël de Kok &lt;me@danieldk.eu&gt;
+
 ## Compilation
 
 The binding is installed in three simple steps:
