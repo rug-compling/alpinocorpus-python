@@ -63,14 +63,12 @@ PyObject *Entry_new(ac::Entry const &entry)
   Entry *pyEntry = reinterpret_cast<Entry *>(EntryType.tp_alloc(&EntryType, 0));
 
   pyEntry->name = Py_BuildValue("s#", entry.name.c_str(), entry.name.size());
-  Py_INCREF(pyEntry->name);
 
   // It's a shame that we have to copy the contents, but EntryIterators
   // are input iterators. So, we cannot keep an iterator pointed at a
   // previous entry to retrieve the contents at any time.
   pyEntry->contents = Py_BuildValue("s#", entry.contents.c_str(),
       entry.contents.size());
-  Py_INCREF(pyEntry->contents);
 
   return reinterpret_cast<PyObject *>(pyEntry);
 }
