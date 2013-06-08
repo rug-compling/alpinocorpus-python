@@ -6,6 +6,7 @@
 
 #include <AlpinoCorpus/CorpusReader.hh>
 #include <AlpinoCorpus/CorpusReaderFactory.hh>
+#include <AlpinoCorpus/DirectoryCorpusReader.hh>
 
 #include "alpinocorpus.h"
 #include "CorpusReader.hh"
@@ -99,18 +100,25 @@ void prepareTimeout(EntryIterator *iter, int timeout)
 PyObject *CorpusReader_new(PyTypeObject *type, PyObject *args,
   PyObject *kwds)
 {
+  static char const *kwlist[] = {"corpus", "asDirectoryCorpus", NULL};
+
+  int asDirectoryCorpus = false;
+
   char *path;
-  if (!PyArg_ParseTuple(args, "s", &path))
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "s|i", (char **) kwlist,
+        &path, &asDirectoryCorpus))
     return NULL;
 
   CorpusReader *self;
   self = (CorpusReader *) type->tp_alloc(type, 0);
   try {
     if (self != NULL) {
-      if (path[strlen(path) - 1] == '/')
-	self->reader = alpinocorpus::CorpusReaderFactory::openRecursive(path);
+      if (asDirectoryCorpus)
+        self->reader = new alpinocorpus::DirectoryCorpusReader(path);
+      else if (isDirectory(path))
+        self->reader = alpinocorpus::CorpusReaderFactory::openRecursive(path);
       else
-	self->reader = alpinocorpus::CorpusReaderFactory::open(path);
+        self->reader = alpinocorpus::CorpusReaderFactory::open(path);
     }
   } catch (std::runtime_error &e) {
     raise_exception(e.what());

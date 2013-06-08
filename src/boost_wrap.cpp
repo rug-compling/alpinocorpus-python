@@ -1,6 +1,7 @@
 #include <boost/version.hpp>
 #include <boost/thread/xtime.hpp>
 #include <boost/thread/thread.hpp>
+#include <boost/filesystem.hpp>
 
 #include "boost_wrap.hh"
 
@@ -31,4 +32,10 @@ void sleepBoostThread(int timeout)
   xt.sec += timeout;
 
   boost::thread::sleep(xt);
+}
+
+bool isDirectory(std::string const &path)
+{
+  boost::filesystem::path p(path);
+  return boost::filesystem::is_directory(p);
 }

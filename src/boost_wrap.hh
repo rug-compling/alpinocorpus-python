@@ -17,6 +17,7 @@ void sleepBoostThread(int timeout);
 boost::thread *createBoostThread(InterruptIter const &callable);
 void interruptBoostThread(boost::thread *thread);
 void deleteBoostThread(boost::thread *thread);
+bool isDirectory(std::string const &path);
 
 struct InterruptIter
 {

@@ -1,7 +1,8 @@
 from distutils.core import setup, Extension
 
 alpinocorpus = Extension('alpinocorpus',
-	libraries = ['alpino_corpus', 'exslt', 'boost_thread-mt'],
+    libraries = ['alpino_corpus', 'exslt', 'boost_filesystem-mt',
+      'boost_thread-mt'],
     sources = ['src/alpinocorpus.cpp', 'src/CorpusReader.cpp',
       'src/Entry.cpp', 'src/EntryIterator.cpp', 'src/MarkerQuery.cpp',
       'src/boost_wrap.cpp'],
