@@ -32,8 +32,10 @@ if __name__ == "__main__":
     print("%s: corpus" % sys.argv[0])
     sys.exit(1)
 
+
   styledir = os.path.dirname(sys.argv[0])
-  stylesheet = os.path.join(styledir, "bracketed-sentence.xsl")
+  stylesheetPath = os.path.join(styledir, "bracketed-sentence.xsl")
+  stylesheet = open(stylesheetPath, 'r').read()
 
   reader = alpinocorpus.CorpusReader(sys.argv[1])
 

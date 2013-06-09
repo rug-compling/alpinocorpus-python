@@ -1,8 +1,6 @@
 #!/usr/bin/python
 
 import alpinocorpus
-import libxml2
-import libxslt
 import os.path
 import sys
 
@@ -35,7 +33,8 @@ if __name__ == "__main__":
     sys.exit(1)
 
   styledir = os.path.dirname(sys.argv[0])
-  stylesheet = os.path.join(styledir, "bracketed-sentence.xsl")
+  stylesheetPath = os.path.join(styledir, "bracketed-sentence.xsl")
+  stylesheet = open(stylesheetPath, 'r').read()
 
   reader = alpinocorpus.CorpusReader(sys.argv[1])
 
