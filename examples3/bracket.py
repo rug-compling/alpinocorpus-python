@@ -6,7 +6,7 @@ import sys
 
 def matchAndPrint(stylesheet, reader, query):
   markerQueries = [alpinocorpus.MarkerQuery(query, "active", "1")]
-  for entry in reader.queryWithStylesheet(query, stylesheet, markerQueries):
+  for entry in reader.xpathWithStylesheet(query, stylesheet, markerQueries):
     print(entry.contents())
 
 if __name__ == "__main__":

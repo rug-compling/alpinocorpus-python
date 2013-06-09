@@ -18,8 +18,10 @@ static PyMethodDef CorpusReader_methods[] = {
   {"entries", (PyCFunction) CorpusReader_entries, METH_NOARGS, "Entries" },
   {"entriesWithStylesheet", (PyCFunction) CorpusReader_entriesWithStylesheet,
     METH_VARARGS, "Iterate over entries, transforming them with a stylesheet" },
-  {"query", (PyCFunction) CorpusReader_query, METH_VARARGS, "Execute a query" },
-  {"queryWithStylesheet", (PyCFunction) CorpusReader_queryWithStylesheet, METH_VARARGS, "Execute a query and transform the results with a stylesheet" },
+  {"query", (PyCFunction) CorpusReader_xpath, METH_VARARGS, "Execute a query (deprecated, use xpath)" },
+  {"queryWithStylesheet", (PyCFunction) CorpusReader_xpathWithStylesheet, METH_VARARGS, "Execute a query and transform the results with a stylesheet (deprecated, use xpathWithStyleSheet)" },
+  {"xpath", (PyCFunction) CorpusReader_xpath, METH_VARARGS, "Execute a query" },
+  {"xpathWithStylesheet", (PyCFunction) CorpusReader_xpathWithStylesheet, METH_VARARGS, "Execute a query" },
   {"read", (PyCFunction) CorpusReader_read, METH_VARARGS, "Read entry" },
   {"readMarkQueries", (PyCFunction) CorpusReader_readMarkQueries, METH_VARARGS, "Read entry, marking queries" },
   {"size", (PyCFunction) CorpusReader_size, METH_NOARGS, "Get the number of corpus entries" },
@@ -231,7 +233,7 @@ PyObject *CorpusReader_entriesWithStylesheet(CorpusReader *self, PyObject *args)
   return (PyObject *) iter;
 }
 
-PyObject *CorpusReader_query(CorpusReader *self, PyObject *args)
+PyObject *CorpusReader_xpath(CorpusReader *self, PyObject *args)
 {
   char *query;
   int timeout = -1;
@@ -259,7 +261,7 @@ PyObject *CorpusReader_query(CorpusReader *self, PyObject *args)
   return (PyObject *) iter;
 }
 
-PyObject *CorpusReader_queryWithStylesheet(CorpusReader *self, PyObject *args)
+PyObject *CorpusReader_xpathWithStylesheet(CorpusReader *self, PyObject *args)
 {
   char *query, *stylesheet;
   PyObject *markerList;
