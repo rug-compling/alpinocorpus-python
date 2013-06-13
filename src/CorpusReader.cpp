@@ -21,6 +21,7 @@ static PyMethodDef CorpusReader_methods[] = {
   {"query", (PyCFunction) CorpusReader_xpath, METH_VARARGS, "Execute a query (deprecated, use xpath)" },
   {"queryWithStylesheet", (PyCFunction) CorpusReader_xpathWithStylesheet, METH_VARARGS, "Execute a query and transform the results with a stylesheet (deprecated, use xpathWithStyleSheet)" },
   {"xpath", (PyCFunction) CorpusReader_xpath, METH_VARARGS, "Execute a query" },
+  {"xquery", (PyCFunction) CorpusReader_xquery, METH_VARARGS, "Execute an XQuery program" },
   {"xpathWithStylesheet", (PyCFunction) CorpusReader_xpathWithStylesheet, METH_VARARGS, "Execute a query" },
   {"read", (PyCFunction) CorpusReader_read, METH_VARARGS, "Read entry" },
   {"readMarkQueries", (PyCFunction) CorpusReader_readMarkQueries, METH_VARARGS, "Read entry, marking queries" },
@@ -233,7 +234,7 @@ PyObject *CorpusReader_entriesWithStylesheet(CorpusReader *self, PyObject *args)
   return (PyObject *) iter;
 }
 
-PyObject *CorpusReader_xpath(CorpusReader *self, PyObject *args)
+PyObject *CorpusReader_query(CorpusReader *self, PyObject *args, bool xquery)
 {
   char *query;
   int timeout = -1;
@@ -245,7 +246,10 @@ PyObject *CorpusReader_xpath(CorpusReader *self, PyObject *args)
   try {
     if (iter != NULL) {
       iter->reader = self;
-      iter->iter = new alpinocorpus::CorpusReader::EntryIterator(self->reader->query(alpinocorpus::CorpusReader::XPATH, query));
+      if (xquery)
+        iter->iter = new alpinocorpus::CorpusReader::EntryIterator(self->reader->query(alpinocorpus::CorpusReader::XQUERY, query));
+      else
+        iter->iter = new alpinocorpus::CorpusReader::EntryIterator(self->reader->query(alpinocorpus::CorpusReader::XPATH, query));
 
       // Ensure the reader is not deallocated, since we need it.
       Py_INCREF(iter->reader);
@@ -259,6 +263,16 @@ PyObject *CorpusReader_xpath(CorpusReader *self, PyObject *args)
   prepareTimeout(iter, timeout);
 
   return (PyObject *) iter;
+}
+
+PyObject *CorpusReader_xpath(CorpusReader *self, PyObject *args)
+{
+  return CorpusReader_query(self, args, false);
+}
+
+PyObject *CorpusReader_xquery(CorpusReader *self, PyObject *args)
+{
+  return CorpusReader_query(self, args, true);
 }
 
 PyObject *CorpusReader_xpathWithStylesheet(CorpusReader *self, PyObject *args)

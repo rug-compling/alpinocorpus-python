@@ -18,6 +18,7 @@ void CorpusReader_dealloc(CorpusReader *self);
 PyObject *CorpusReader_entries(CorpusReader *self);
 PyObject *CorpusReader_entriesWithStylesheet(CorpusReader *self, PyObject *args);
 PyObject *CorpusReader_xpath(CorpusReader *self, PyObject *args);
+PyObject *CorpusReader_xquery(CorpusReader *self, PyObject *args);
 PyObject *CorpusReader_xpathWithStylesheet(CorpusReader *self, PyObject *args);
 PyObject *CorpusReader_read(CorpusReader *self, PyObject *args);
 PyObject *CorpusReader_readMarkQueries(CorpusReader *self, PyObject *args);
