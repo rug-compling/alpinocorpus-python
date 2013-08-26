@@ -2,7 +2,7 @@ Source: python-alpinocorpus
 Section: python
 Priority: extra
 Maintainer: Daniël de Kok <me@danieldk.eu>
-Build-Depends: cdbs (>= 0.4.94), debhelper (>= 8.0.0), python (>= 2.6), python-all-dev (>= 2.6.6-3), libalpino-corpus-dev (>= 1.2.0), libboost-thread1.53-dev (>= 1.53), libxml2-dev (>= 2.7.8), libxslt1-dev (>= 1.1.26-7)
+Build-Depends: cdbs (>= 0.4.94), debhelper (>= 8.0.0), python (>= 2.6), python-all-dev (>= 2.6.6-3), libalpino-corpus-dev (>= 2.0.2), libboost-thread1.53-dev (>= 1.53), libboost-filesystem1.53-dev (>= 1.53), libxml2-dev (>= 2.7.8), libxslt1-dev (>= 1.1.26-7)
 X-Python-Version: >= 2.6
 Standards-Version: 3.9.2
 Homepage: http://rug-compling.github.com/alpinicorpus
