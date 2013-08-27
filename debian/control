@@ -4,20 +4,12 @@ Priority: extra
 Maintainer: Daniël de Kok <me@danieldk.eu>
 Build-Depends: cdbs (>= 0.4.94), debhelper (>= 8.0.0), python-all-dev (>= 2.6.6-3), python3-all-dev (>= 3.3.1), libalpino-corpus-dev (>= 2.0.2), libboost-thread1.53-dev (>= 1.53), libboost-filesystem1.53-dev (>= 1.53), libxml2-dev (>= 2.7.8), libxslt1-dev (>= 1.1.26-7)
 X-Python-Version: >= 2.6
-X-Python3-Version: >= 3.1
 Standards-Version: 3.9.2
 Homepage: http://rug-compling.github.com/alpinicorpus
 
 Package: python-alpinocorpus
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}
-Description: Python bindings for the alpinocorpus library
- This module provides Python bindings for the alpinocorpus library.
- With this library, you can query/read Alpino treebanks.
-
-Package: python3-alpinocorpus
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${python3:Depends}
 Description: Python bindings for the alpinocorpus library
  This module provides Python bindings for the alpinocorpus library.
  With this library, you can query/read Alpino treebanks.
