@@ -52,7 +52,10 @@ PyTypeObject CorpusReaderType = {
             0,                                        /* tp_setattro */
             0,                                        /* tp_as_buffer */
             Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-            "CorpusReader(path, asDirectoryCorpus=False, macrosFilename=None)\n\n... where path refers to an indexed corpus, a dact corpus, or a directory corpus.\nIf macrosFilename is given, its macros are expanded for every query.",     /* tp_doc */
+            "CorpusReader(path, asDirectoryCorpus=False, macrosFilename=None)\n\n"
+            "... where path refers to an indexed corpus, a dact corpus, "
+            "or a directory corpus. If macrosFilename is given, its macros are "
+            "expanded for every query.",              /* tp_doc */
             0,                                        /* tp_traverse */
             0,                                        /* tp_clear */
             0,                                        /* tp_richcompare */
@@ -125,10 +128,9 @@ PyObject *CorpusReader_new(PyTypeObject *type, PyObject *args,
       else
         self->reader = alpinocorpus::CorpusReaderFactory::open(path);
 
-      alpinocorpus::Macros macros;
-      self->macros = macros;  // empty macros object
       if (macrosFilename != NULL)
-        self->macros = alpinocorpus::loadMacros(macrosFilename);
+        self->macros = new alpinocorpus::Macros(
+                alpinocorpus::loadMacros(macrosFilename));
     }
   } catch (std::runtime_error &e) {
     raise_exception(e.what());
@@ -140,6 +142,8 @@ PyObject *CorpusReader_new(PyTypeObject *type, PyObject *args,
 
 void CorpusReader_dealloc(CorpusReader *self)
 {
+  if (self->macros != NULL)
+    delete self->macros;
   delete self->reader;
   OB_TYPE(self)->tp_free(self);
 }
@@ -243,7 +247,8 @@ PyObject *CorpusReader_entriesWithStylesheet(CorpusReader *self, PyObject *args)
 
 PyObject *CorpusReader_query(CorpusReader *self, PyObject *args, bool xquery)
 {
-  char *query;
+  const char *query;
+  std::string expandedQuery;
   int timeout = -1;
   if (!PyArg_ParseTuple(args, "s|i", &query, &timeout))
     return NULL;
@@ -253,7 +258,10 @@ PyObject *CorpusReader_query(CorpusReader *self, PyObject *args, bool xquery)
   try {
     if (iter != NULL) {
       iter->reader = self;
-      query = (char *)alpinocorpus::expandMacros(self->macros, query).c_str();
+      if (self->macros != NULL) {
+        expandedQuery = alpinocorpus::expandMacros(*self->macros, query);
+        query = expandedQuery.c_str();
+      }
       if (xquery)
         iter->iter = new alpinocorpus::CorpusReader::EntryIterator(self->reader->query(alpinocorpus::CorpusReader::XQUERY, query));
       else
@@ -285,7 +293,8 @@ PyObject *CorpusReader_xquery(CorpusReader *self, PyObject *args)
 
 PyObject *CorpusReader_xpathWithStylesheet(CorpusReader *self, PyObject *args)
 {
-  char *query, *stylesheet;
+  const char *query, *stylesheet;
+  std::string expandedQuery;
   PyObject *markerList;
   int timeout = -1;
   if (!PyArg_ParseTuple(args, "ssO!|i", &query, &stylesheet, &PyList_Type,
@@ -300,6 +309,10 @@ PyObject *CorpusReader_xpathWithStylesheet(CorpusReader *self, PyObject *args)
   try {
     if (iter != NULL) {
       iter->reader = self;
+      if (self->macros != NULL) {
+        expandedQuery = alpinocorpus::expandMacros(*self->macros, query);
+        query = expandedQuery.c_str();
+      }
       iter->iter = new alpinocorpus::CorpusReader::EntryIterator(self->reader->queryWithStylesheet(alpinocorpus::CorpusReader::XPATH, query, stylesheet, markerQueries));
 
       // Ensure the reader is not deallocated, since we need it.

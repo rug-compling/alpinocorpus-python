@@ -9,7 +9,7 @@
 struct CorpusReader {
   PyObject_HEAD
   alpinocorpus::CorpusReader *reader;
-  alpinocorpus::Macros macros;
+  alpinocorpus::Macros *macros;
 };
 
 extern PyTypeObject CorpusReaderType;
