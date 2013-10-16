@@ -247,21 +247,21 @@ PyObject *CorpusReader_entriesWithStylesheet(CorpusReader *self, PyObject *args)
 
 PyObject *CorpusReader_query(CorpusReader *self, PyObject *args, bool xquery)
 {
-  const char *query;
-  std::string expandedQuery;
+  const char *cQuery;
   int timeout = -1;
-  if (!PyArg_ParseTuple(args, "s|i", &query, &timeout))
+  if (!PyArg_ParseTuple(args, "s|i", &cQuery, &timeout))
     return NULL;
+
+  std::string query(cQuery);
 
   EntryIterator *iter;
   iter = (EntryIterator *) EntryIteratorType.tp_alloc(&EntryIteratorType, 0);
   try {
     if (iter != NULL) {
       iter->reader = self;
-      if (self->macros != NULL) {
-        expandedQuery = alpinocorpus::expandMacros(*self->macros, query);
-        query = expandedQuery.c_str();
-      }
+      if (self->macros != NULL)
+        query = alpinocorpus::expandMacros(*self->macros, query);
+
       if (xquery)
         iter->iter = new alpinocorpus::CorpusReader::EntryIterator(self->reader->query(alpinocorpus::CorpusReader::XQUERY, query));
       else
@@ -293,13 +293,14 @@ PyObject *CorpusReader_xquery(CorpusReader *self, PyObject *args)
 
 PyObject *CorpusReader_xpathWithStylesheet(CorpusReader *self, PyObject *args)
 {
-  const char *query, *stylesheet;
-  std::string expandedQuery;
+  const char *cQuery, *stylesheet;
   PyObject *markerList;
   int timeout = -1;
-  if (!PyArg_ParseTuple(args, "ssO!|i", &query, &stylesheet, &PyList_Type,
+  if (!PyArg_ParseTuple(args, "ssO!|i", &cQuery, &stylesheet, &PyList_Type,
         &markerList, &timeout))
     return NULL;
+
+  std::string query(cQuery);
 
   std::list<alpinocorpus::CorpusReader::MarkerQuery> markerQueries = parseMarkerQueries(markerList);
   
@@ -309,10 +310,9 @@ PyObject *CorpusReader_xpathWithStylesheet(CorpusReader *self, PyObject *args)
   try {
     if (iter != NULL) {
       iter->reader = self;
-      if (self->macros != NULL) {
-        expandedQuery = alpinocorpus::expandMacros(*self->macros, query);
-        query = expandedQuery.c_str();
-      }
+      if (self->macros != NULL)
+        query = alpinocorpus::expandMacros(*self->macros, query);
+
       iter->iter = new alpinocorpus::CorpusReader::EntryIterator(self->reader->queryWithStylesheet(alpinocorpus::CorpusReader::XPATH, query, stylesheet, markerQueries));
 
       // Ensure the reader is not deallocated, since we need it.
