@@ -75,7 +75,8 @@ PyTypeObject CorpusReaderType = {
             CorpusReader_new,                         /* tp_new */
         };
 
-std::list<alpinocorpus::CorpusReader::MarkerQuery> parseMarkerQueries(PyObject *markerList)
+std::list<alpinocorpus::CorpusReader::MarkerQuery> parseMarkerQueries(PyObject *markerList,
+    alpinocorpus::Macros *macros)
 {
   std::list<alpinocorpus::CorpusReader::MarkerQuery> markerQueries;
 
@@ -87,8 +88,13 @@ std::list<alpinocorpus::CorpusReader::MarkerQuery> parseMarkerQueries(PyObject *
     }
 
     MarkerQuery *marker = reinterpret_cast<MarkerQuery *>(entry);
+
+    std::string query = *marker->query;
+    if (macros != NULL)
+      query = alpinocorpus::expandMacros(*macros, query);
+
     markerQueries.push_back(alpinocorpus::CorpusReader::MarkerQuery(
-      *marker->query, *marker->attr, *marker->value));
+      query, *marker->attr, *marker->value));
   }
 
   return markerQueries;
@@ -175,7 +181,8 @@ PyObject *CorpusReader_readMarkQueries(CorpusReader *self, PyObject *args)
   if (!PyArg_ParseTuple(args, "sO!", &entry, &PyList_Type, &markerList))
     return NULL;
 
-  std::list<alpinocorpus::CorpusReader::MarkerQuery> markerQueries = parseMarkerQueries(markerList);
+  std::list<alpinocorpus::CorpusReader::MarkerQuery> markerQueries =
+    parseMarkerQueries(markerList, self->macros);
 
   std::string data;
   Py_BEGIN_ALLOW_THREADS
@@ -221,7 +228,8 @@ PyObject *CorpusReader_entriesWithStylesheet(CorpusReader *self, PyObject *args)
         &timeout))
     return NULL;
 
-  std::list<alpinocorpus::CorpusReader::MarkerQuery> markerQueries = parseMarkerQueries(markerList);
+  std::list<alpinocorpus::CorpusReader::MarkerQuery> markerQueries =
+    parseMarkerQueries(markerList, self->macros);
 
   EntryIterator *iter;
   iter = (EntryIterator *) EntryIteratorType.tp_alloc(&EntryIteratorType, 0);
@@ -302,7 +310,8 @@ PyObject *CorpusReader_xpathWithStylesheet(CorpusReader *self, PyObject *args)
 
   std::string query(cQuery);
 
-  std::list<alpinocorpus::CorpusReader::MarkerQuery> markerQueries = parseMarkerQueries(markerList);
+  std::list<alpinocorpus::CorpusReader::MarkerQuery> markerQueries =
+    parseMarkerQueries(markerList, self->macros);
   
   EntryIterator *iter;
   iter = (EntryIterator *) EntryIteratorType.tp_alloc(&EntryIteratorType, 0);
