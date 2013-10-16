@@ -4,10 +4,12 @@
 #include <Python.h>
 
 #include <AlpinoCorpus/CorpusReader.hh>
+#include <AlpinoCorpus/macros.hh>
 
 struct CorpusReader {
   PyObject_HEAD
   alpinocorpus::CorpusReader *reader;
+  alpinocorpus::Macros *macros;
 };
 
 extern PyTypeObject CorpusReaderType;
