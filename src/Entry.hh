@@ -13,6 +13,7 @@ struct Entry {
   PyObject_HEAD
   
   PyObject *name;
+  PyObject *shortName;
   PyObject *contents;
 };
 
@@ -22,5 +23,6 @@ PyObject *Entry_new(alpinocorpus::Entry const &entry);
 void Entry_dealloc(Entry *self);
 PyObject *Entry_contents(Entry *self);
 PyObject *Entry_name(Entry *self);
+PyObject *Entry_shortName(Entry *self);
 
 #endif // PYTHON_ENTRY_HH
