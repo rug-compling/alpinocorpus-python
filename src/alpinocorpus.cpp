@@ -2,6 +2,7 @@
 
 #include "alpinocorpus.h"
 #include "CorpusReader.hh"
+#include "CorpusWriter.hh"
 #include "Entry.hh"
 #include "EntryIterator.hh"
 #include "MarkerQuery.hh"
@@ -58,6 +59,8 @@ PyMODINIT_FUNC initalpinocorpus(void)
 
   if (PyType_Ready(&CorpusReaderType) < 0)
     MODULE_RETURN(Py_None)
+  if (PyType_Ready(&CorpusWriterType) < 0)
+    MODULE_RETURN(Py_None)
   if (PyType_Ready(&EntryIteratorType) < 0)
     MODULE_RETURN(Py_None)
   if (PyType_Ready(&EntryType) < 0)
@@ -89,7 +92,9 @@ PyMODINIT_FUNC initalpinocorpus(void)
 
   
   Py_INCREF(&CorpusReaderType);
+  Py_INCREF(&CorpusWriterType);
   PyModule_AddObject(m, "CorpusReader", (PyObject *) &CorpusReaderType);
+  PyModule_AddObject(m, "CorpusWriter", (PyObject *) &CorpusWriterType);
   PyModule_AddObject(m, "EntryIterator", (PyObject *) &EntryIteratorType);
   PyModule_AddObject(m, "Entry", (PyObject *) &EntryType);
   PyModule_AddObject(m, "MarkerQuery", (PyObject *) &MarkerQueryType);
