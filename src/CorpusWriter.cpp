@@ -124,12 +124,14 @@ PyObject *CorpusWriter_write(CorpusWriter *self, PyObject *args)
 PyObject *CorpusWriter_write_entries(CorpusWriter *self, PyObject *args)
 {
   CorpusReader *corpus;
+  size_t entries;
   if (!PyArg_ParseTuple(args, "O!", &CorpusReaderType, &corpus))
     return NULL;
 
   Py_BEGIN_ALLOW_THREADS
   try {
     self->writer->write(*corpus->reader, false);
+    entries = corpus->reader->size();
   } catch (std::runtime_error &e) {
     Py_BLOCK_THREADS
     raise_exception(e.what());
@@ -137,5 +139,5 @@ PyObject *CorpusWriter_write_entries(CorpusWriter *self, PyObject *args)
   }
   Py_END_ALLOW_THREADS
 
-  return Py_BuildValue("n", corpus->reader->size());
+  return PyLong_FromSize_t(entries);
 }
