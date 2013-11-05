@@ -75,8 +75,7 @@ PyObject *CorpusWriter_new(PyTypeObject *type, PyObject *args,
         &path, &writertype))
     return NULL;
 
-  CorpusWriter *self;
-  self = (CorpusWriter *) type->tp_alloc(type, 0);
+  CorpusWriter *self = (CorpusWriter *) type->tp_alloc(type, 0);
   try {
     if (self != NULL) {
       if (writertype == NULL || strcmp(writertype, "dact") == 0)
@@ -85,10 +84,14 @@ PyObject *CorpusWriter_new(PyTypeObject *type, PyObject *args,
         self->writer = new alpinocorpus::CompactCorpusWriter(path);
       //else if (strcmp(writertype, "directory")
       //  self->writer = new DirectoryCorpusWriter(filename);
-      else
+      else {
+        CorpusWriter_dealloc(self);
         raise_exception("Trying to write to a corpus of unknown type");
+        return NULL;
+      }
     }
   } catch (std::runtime_error &e) {
+    CorpusWriter_dealloc(self);
     raise_exception(e.what());
     return NULL;
   }
@@ -108,7 +111,12 @@ PyObject *CorpusWriter_write(CorpusWriter *self, PyObject *args)
   if (!PyArg_ParseTuple(args, "ss", &name, &content))
     return NULL;
 
-  self->writer->write(name, content);
+  try {
+    self->writer->write(name, content);
+  } catch (std::runtime_error &e) {
+    raise_exception(e.what());
+    return NULL;
+  }
 
   return Py_BuildValue("i", 1);
 }
@@ -119,7 +127,15 @@ PyObject *CorpusWriter_write_entries(CorpusWriter *self, PyObject *args)
   if (!PyArg_ParseTuple(args, "O!", &CorpusReaderType, &corpus))
     return NULL;
 
-  self->writer->write(*corpus->reader, false);
+  Py_BEGIN_ALLOW_THREADS
+  try {
+    self->writer->write(*corpus->reader, false);
+  } catch (std::runtime_error &e) {
+    Py_BLOCK_THREADS
+    raise_exception(e.what());
+    return NULL;
+  }
+  Py_END_ALLOW_THREADS
 
-  return Py_BuildValue("i", corpus->reader->size());
+  return Py_BuildValue("n", corpus->reader->size());
 }
