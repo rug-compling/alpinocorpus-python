@@ -14,9 +14,11 @@
 #include "boost_wrap.hh"
 
 static PyMethodDef CorpusWriter_methods[] = {
-  {"write", (PyCFunction) CorpusWriter_write, METH_VARARGS, "Write a single entry." },
+  {"write", (PyCFunction) CorpusWriter_write, METH_VARARGS, "write(name, contents)\n\n"
+      "Write a single entry." },
   {"write_entries", (PyCFunction) CorpusWriter_write_entries, METH_VARARGS,
-      "Write entries from a CorpusReader object. " },
+      "write_entries(corpus)\n\nWrite entries from a CorpusReader object. "
+      "Returns number of entries written." },
   {NULL} // Sentinel
 };
 
@@ -68,7 +70,7 @@ PyObject *CorpusWriter_new(PyTypeObject *type, PyObject *args,
 {
   static char const *kwlist[] = {"filename", "writertype", NULL};
 
-  char *path, *writertype;
+  char *path, *writertype = NULL;
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "s|s", (char **) kwlist,
         &path, &writertype))
     return NULL;
@@ -77,9 +79,9 @@ PyObject *CorpusWriter_new(PyTypeObject *type, PyObject *args,
   self = (CorpusWriter *) type->tp_alloc(type, 0);
   try {
     if (self != NULL) {
-      if (strcmp(writertype, "dact"))
+      if (writertype == NULL || strcmp(writertype, "dact") == 0)
         self->writer = new alpinocorpus::DbCorpusWriter(path, true);
-      else if (strcmp(writertype, "compact"))
+      else if (strcmp(writertype, "compact") == 0)
         self->writer = new alpinocorpus::CompactCorpusWriter(path);
       //else if (strcmp(writertype, "directory")
       //  self->writer = new DirectoryCorpusWriter(filename);
@@ -108,7 +110,7 @@ PyObject *CorpusWriter_write(CorpusWriter *self, PyObject *args)
 
   self->writer->write(name, content);
 
-  return Py_BuildValue("i", 0);  // FIXME
+  return Py_BuildValue("i", 1);
 }
 
 PyObject *CorpusWriter_write_entries(CorpusWriter *self, PyObject *args)
@@ -119,5 +121,5 @@ PyObject *CorpusWriter_write_entries(CorpusWriter *self, PyObject *args)
 
   self->writer->write(*corpus->reader, false);
 
-  return Py_BuildValue("i", 0);  // FIXME
+  return Py_BuildValue("i", corpus->reader->size());
 }
