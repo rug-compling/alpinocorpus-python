@@ -42,12 +42,10 @@ print(crps.valid_query(query))
 for entry in crps.query(query):
     print(entry, '=', crps[entry])
 
-# transform results from query using stylesheet (query is optional)
+# transform results from query using stylesheet (queries are optional)
 for entry, value in crps.query(query=query,
                                stylesheet=stylesheet,
-                               markerQuery=query,
-                               markerAttr='active',
-                               markerValue='1'):
+                               markerQuery=[MarkerQuery(query, 'active', '1')]):
     print(entry, '=', value)
 
 # mark some elements in entry
@@ -71,6 +69,59 @@ from os import listdir as _listdir
 from stat import S_ISDIR as _isdir
 
 #| classes
+
+class MarkerQuery:
+    def __init__(self, query, attr, value):
+        self._query = query
+        self._attr = attr
+        self._value = value
+   
+    @property
+    def query(self):
+        return self._query
+
+    @property
+    def attr(self):
+        return self._attr
+
+    @property
+    def value(self):
+        return self._value
+
+cdef class MarkerQueries:
+    cdef alpinocorpus.marker_query_t *mqs
+    cdef _utfEncoded
+
+    def __init__(self, markerQueries):
+        self.mqs = NULL
+        self._utfEncoded = [] # Abuse the garbage collector :)
+
+        self.mqs = <marker_query_t *>libc.stdlib.malloc(
+                len(markerQueries) * sizeof(marker_query_t))
+
+        for i in range(len(markerQueries)):
+            q = markerQueries[i].query.encode('utf-8')
+            a = markerQueries[i].attr.encode('utf-8')
+            v = markerQueries[i].value.encode('utf-8')
+            self._utfEncoded.append([q, a, v])
+            self.mqs[i].query = q
+            self.mqs[i].attr = a
+            self.mqs[i].value = v
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
+    def close(self):
+        if self.mqs != NULL:
+            libc.stdlib.free(self.mqs)
+            self.mqs = NULL
+            self._utfEncoded = None
+
+    cdef marker_query_t *_get(self):
+        return self.mqs
 
 cdef class Reader:
 
@@ -222,63 +273,49 @@ cdef class Reader:
         libc.stdlib.free(s)
         return p
 
-    def query(self, query='', markerQuery='', markerAttr='', markerValue='', stylesheet=''):
-        cdef marker_query_t[1] mq
+    def query(self, query='', markerQueries = [], stylesheet=''):
         cdef _Iterator it
         cdef _Iterator2 it2
+        cdef MarkerQueries mqs
         
         self._isopen()
     
-        marker = (markerQuery and markerAttr and markerValue)
-        
         if query:
             if not self.valid_query(query):
                 raise RuntimeError("Invalid query: " + query)
 
-        if marker:
-            if not self.valid_query(markerQuery):
-                raise RuntimeError("Invalid marker query: " + markerQuery)
-            mqq = markerQuery.encode('utf-8')
-            mqa = markerAttr.encode('utf-8')
-            mqv = markerValue.encode('utf-8')
-            mq[0].query = mqq
-            mq[0].attr = mqa
-            mq[0].value = mqv
-            mn = 1
-        else:
-            mn = 0
+        with MarkerQueries(markerQueries) as mqs:
+            cMarkerQueries = mqs
+            q = query.encode('utf-8')
+            if not (query or stylesheet):
+                return self.__iter__()
+            if not stylesheet:
+                it = _Iterator()
+                it._c = self._c
+                it._iter = alpinocorpus.alpinocorpus_query_iter(self._c, q)
+                return it
 
-        q = query.encode('utf-8')
-        if not (query or stylesheet):
-            return self.__iter__()
-        if not stylesheet:
-            it = _Iterator()
-            it._c = self._c
-            it._iter = alpinocorpus.alpinocorpus_query_iter(self._c, q)
-            return it
+            it2 = _Iterator2()
+            it2._c = self._c
+            it2._iter = alpinocorpus.alpinocorpus_query_stylesheet_iter(self._c,
+                    q, stylesheet, <marker_query_t *> cMarkerQueries.mqs,
+                    len(markerQueries))
+            return it2
 
-        it2 = _Iterator2()
-        it2._c = self._c
-        it2._iter = alpinocorpus.alpinocorpus_query_stylesheet_iter(self._c, q, stylesheet, mq, mn)
-        return it2
-
-    def read_mark_query(self, entry, markerQuery, markerAttr, markerValue):
-        cdef marker_query_t[1] mq
+    def read_mark_query(self, entry, markerQueries):
+        cdef MarkerQueries cMarkerQueries
 
         self._isopen()
 
-        if not self.valid_query(markerQuery):
-            raise RuntimeError("Invalid marker query: " + markerQuery)
-        mqq = markerQuery.encode('utf-8')
-        mq[0].query = mqq
-        mq[0].attr = markerAttr
-        mq[0].value = markerValue
-        s = alpinocorpus.alpinocorpus_read_mark_queries(self._c, entry, mq, 1)
-        if not s:
-            raise KeyError(entry)
-        p = s + b''
-        libc.stdlib.free(s)
-        return p
+        with MarkerQueries(markerQueries) as mqs:
+            cMarkerQueries = mqs
+            s = alpinocorpus.alpinocorpus_read_mark_queries(self._c, entry,
+                    cMarkerQueries.mqs, len(markerQueries))
+            if not s:
+                raise KeyError(entry)
+            p = s + b''
+            libc.stdlib.free(s)
+            return p
 
 
 cdef class _Iterator:
