@@ -36,6 +36,5 @@ if __name__ == "__main__":
   stylesheetPath = os.path.join(styledir, "bracketed-sentence.xsl")
   stylesheet = open(stylesheetPath, 'r').read()
 
-  reader = alpinocorpus.CorpusReader(sys.argv[1])
-
-  bracket.matchAndPrint(stylesheet, reader, vorfeldQuery)
+  with alpinocorpus.Reader(sys.argv[1]) as reader:
+    bracket.matchAndPrint(stylesheet, reader, vorfeldQuery)
