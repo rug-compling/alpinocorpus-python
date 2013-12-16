@@ -24,7 +24,7 @@ The Python binding for alpinocorpus can be loaded with a simple import:
 The *CorpusReader* class is used to read and query corpora. A corpus
 is opened using the constructor of *CorpusReader*:
 
-    c = CorpusReader("mycorpus.dact")
+    c = alpinocorpus.CorpusReader("mycorpus.dact")
 
 A query can be executed using the *query* method:
 
@@ -34,8 +34,8 @@ The resulting query object is iterable, and can be used to print the
 name or contents of a match:
 
     for entry in q:
-      print(q.name())
-      print(q.contents())
+      print(entry.name())
+      print(entry.contents())
 
 An entry can be read from the corpus using the *read* method of
 *CorpusReader*:
