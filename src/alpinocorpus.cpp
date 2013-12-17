@@ -5,6 +5,7 @@
 #include "CorpusWriter.hh"
 #include "Entry.hh"
 #include "EntryIterator.hh"
+#include "Macros.hh"
 #include "MarkerQuery.hh"
 
 extern "C" {
@@ -65,6 +66,8 @@ PyMODINIT_FUNC initalpinocorpus(void)
     MODULE_RETURN(Py_None)
   if (PyType_Ready(&EntryType) < 0)
     MODULE_RETURN(Py_None)
+  if (PyType_Ready(&MacrosType) < 0)
+    MODULE_RETURN(Py_None)
   if (PyType_Ready(&MarkerQueryType) < 0)
     MODULE_RETURN(Py_None)
   if (initialized != 0)
@@ -93,10 +96,12 @@ PyMODINIT_FUNC initalpinocorpus(void)
   
   Py_INCREF(&CorpusReaderType);
   Py_INCREF(&CorpusWriterType);
+  Py_INCREF(&MacrosType);
   PyModule_AddObject(m, "CorpusReader", (PyObject *) &CorpusReaderType);
   PyModule_AddObject(m, "CorpusWriter", (PyObject *) &CorpusWriterType);
   PyModule_AddObject(m, "EntryIterator", (PyObject *) &EntryIteratorType);
   PyModule_AddObject(m, "Entry", (PyObject *) &EntryType);
+  PyModule_AddObject(m, "Macros", (PyObject *) &MacrosType);
   PyModule_AddObject(m, "MarkerQuery", (PyObject *) &MarkerQueryType);
 
 #if PY_MAJOR_VERSION >= 3
