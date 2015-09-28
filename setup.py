@@ -11,7 +11,7 @@ alpinocorpus = Extension('alpinocorpus',
     include_dirs = ['/usr/include/libxml2'])
 
 setup (name = 'alpinocorpus',
-       version = '1.0.0',
+       version = '2.4.0',
        description = 'Bindings for the alpinocorpus treebank library',
        author = "Daniël de Kok",
        author_email = "me@danieldk.eu",
