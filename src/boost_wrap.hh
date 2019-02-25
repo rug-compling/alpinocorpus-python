@@ -25,7 +25,7 @@ public:
   InterruptIter(EntryIterator *iter, int timeout)
     : d_iter(iter), d_timeout(timeout) {}
 
-  void operator()() {
+  void operator()() const {
     sleepBoostThread(d_timeout);
     d_iter->iter->interrupt();
   }
